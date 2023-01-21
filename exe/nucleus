@@ -1,0 +1,4 @@
+#!/usr/bin/env ruby
+
+require "nucleus"
+Nucleus::CLI.new.call(ARGV)
