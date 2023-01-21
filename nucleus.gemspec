@@ -1,20 +1,20 @@
-require_relative "lib/example/version"
+require_relative "lib/nucleus/version"
 
 Gem::Specification.new do |spec|
-  spec.name = "example"
-  spec.version = Example::VERSION
-  spec.authors = ["Example Owner"]
-  spec.email = ["owner@example.com"]
+  spec.name = "nucleus"
+  spec.version = Nucleus::VERSION
+  spec.authors = ["dodgerogers"]
+  spec.email = ["dodgerogers@hotmail.com"]
 
-  spec.summary = ""
-  spec.homepage = "https://github.com/mattbrictson/gem"
+  spec.summary = "Business Logic Framework"
+  spec.homepage = "https://github.com/dodgerogers/nucleus"
   spec.license = "MIT"
   spec.required_ruby_version = ">= 2.6"
 
   spec.metadata = {
-    "bug_tracker_uri" => "https://github.com/mattbrictson/gem/issues",
-    "changelog_uri" => "https://github.com/mattbrictson/gem/releases",
-    "source_code_uri" => "https://github.com/mattbrictson/gem",
+    "bug_tracker_uri" => "https://github.com/dodgerogers/nucleus/issues",
+    "changelog_uri" => "https://github.com/dodgerogers/nucleus/releases",
+    "source_code_uri" => "https://github.com/dodgerogers/nucleus",
     "homepage_uri" => spec.homepage,
     "rubygems_mfa_required" => "true"
   }
