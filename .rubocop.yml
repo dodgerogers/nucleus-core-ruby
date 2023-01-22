@@ -12,6 +12,7 @@ AllCops:
   Exclude:
     - "tmp/**/*"
     - "vendor/**/*"
+    - "bin/**/*"
 
 Layout/FirstArrayElementIndentation:
   EnforcedStyle: consistent
@@ -101,6 +102,9 @@ Style/FrozenStringLiteralComment:
   Enabled: false
 
 Style/NumericPredicate:
+  Enabled: false
+
+Style/OpenStructUse:
   Enabled: false
 
 Style/StringLiterals:
