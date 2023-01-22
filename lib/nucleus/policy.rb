@@ -1,3 +1,6 @@
+require "nucleus/exceptions"
+
+
 module Nucleus
   class Policy
     attr_reader :user, :record
@@ -11,9 +14,11 @@ module Nucleus
       policy_methods.each do |policy_method_and_args|
         next if send(*policy_method_and_args)
 
-        message = "You are not authorized to: #{policy_method_and_args.first}"
+        is_array = policy_method_and_args.respond_to?(:first)
+        name = is_array && policy_method_and_args.first || policy_method_and_args
+        message = "You do not have access to: #{name}"
 
-        raise ::Exceptions::NotAuthorized, message
+        raise Nucleus::NotAuthorized, message
       end
     end
   end
