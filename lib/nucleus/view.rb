@@ -1,3 +1,1 @@
-require "nucleus/basic_object"
-
-class Nucleus::View < BasicObject; end
+class Nucleus::View < Nucleus::BasicObject; end
