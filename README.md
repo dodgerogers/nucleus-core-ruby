@@ -1,4 +1,4 @@
-# nucleus
+# Nucleus
 
 [![Gem Version](https://badge.fury.io/rb/nucleus.svg)](https://rubygems.org/gems/nucleus)
 [![Circle](https://circleci.com/gh/dodgerogers/nucleus/tree/main.svg?style=shield)](https://app.circleci.com/pipelines/github/dodgerogers/nucleus?branch=main)
