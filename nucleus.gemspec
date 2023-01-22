@@ -5,7 +5,6 @@ Gem::Specification.new do |spec|
   spec.version = Nucleus::VERSION
   spec.authors = ["dodgerogers"]
   spec.email = ["dodgerogers@hotmail.com"]
-
   spec.summary = "Business Logic Framework"
   spec.homepage = "https://github.com/dodgerogers/nucleus"
   spec.license = "MIT"
@@ -24,4 +23,14 @@ Gem::Specification.new do |spec|
   spec.bindir = "exe"
   spec.executables = spec.files.grep(%r{^exe/}) { |f| File.basename(f) }
   spec.require_paths = ["lib"]
+
+  spec.add_development_dependency "minitest", "~> 5.11"
+  spec.add_development_dependency "minitest-ci", "~> 3.4"
+  spec.add_development_dependency "minitest-reporters", "~> 1.3"
+  spec.add_development_dependency "rake", "~> 13.0"
+  spec.add_development_dependency "rubocop", "1.43.0"
+  spec.add_development_dependency "rubocop-minitest", "0.26.1"
+  spec.add_development_dependency "rubocop-packaging", "0.5.2"
+  spec.add_development_dependency "rubocop-performance", "1.15.2"
+  spec.add_development_dependency "rubocop-rake", "0.6.0"
 end
