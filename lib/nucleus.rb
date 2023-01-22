@@ -4,7 +4,7 @@ module Nucleus
   autoload :BasicObject, "nucleus/basic_object"
   autoload :View, "nucleus/view"
   autoload :Aggregate, "nucleus/aggregate"
-  # autoload :Policy, "nucleus/policy"
+  autoload :Policy, "nucleus/policy"
   # autoload :Workflow, "nucleus/workflow"
   # autoload :Operation, "nucleus/operation"
   # autoload :Responder, "nucleus/responder"
