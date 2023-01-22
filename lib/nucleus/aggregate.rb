@@ -1,3 +1,1 @@
-require "basic_object"
-
-class Nucleus::Aggregate < BasicObject; end
+class Nucleus::Aggregate < Nucleus::BasicObject; end
