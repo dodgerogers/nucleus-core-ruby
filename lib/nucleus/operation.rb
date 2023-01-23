@@ -39,10 +39,10 @@ module Nucleus
 
     def initialize(args={})
       @context = if args.is_a?(Context)
-                  args
-                else
-                  Context.new(args)
-                end
+                   args
+                 else
+                   Context.new(args)
+                 end
     end
 
     def self.call(args={})
