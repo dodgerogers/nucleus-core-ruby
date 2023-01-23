@@ -1,6 +1,6 @@
 module Nucleus
   class Operation
-    class Context < SimpleDelegator
+    class Context < OpenStruct
       class Error < StandardError
         attr_reader :exception
 
@@ -15,9 +15,9 @@ module Nucleus
 
       def initialize(attrs={})
         @failure = false
-        @executed = []
+        @executed = attrs.fetch(:executed) { [] }
 
-        super(OpenStruct.new(attrs))
+        super(attrs)
       end
 
       def success?
@@ -27,7 +27,10 @@ module Nucleus
       def fail!(message, attrs={})
         @failure = true
 
-        raise Error.new(message, attrs)
+        self.message = message
+        self.exception = attrs.delete(:exception)
+
+        raise Context::Error, message
       end
 
       def execute(operation)
@@ -54,8 +57,6 @@ module Nucleus
 
       context
     rescue Context::Error
-      rollback(context) if context.failure
-
       context
     end
 
