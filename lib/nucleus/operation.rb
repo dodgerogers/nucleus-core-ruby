@@ -50,7 +50,7 @@ module Nucleus
       context = operation.context
 
       operation.call
-      context.execute(self)
+      context.execute(self.class)
 
       context
     rescue Context::Error
@@ -63,6 +63,12 @@ module Nucleus
       context.executed.reverse_each do |executed|
         executed.new(context).rollback
       end
+    end
+
+    def call
+    end
+
+    def rollback
     end
   end
 end
