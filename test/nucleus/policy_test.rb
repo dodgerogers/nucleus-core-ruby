@@ -23,8 +23,8 @@ class PolicyTest < Minitest::Test
   end
 
   def test_initialization_with_hash
-    assert(@policy.can_read?)
-    assert(@policy.can_write?)
+    assert_predicate(@policy, :can_read?)
+    assert_predicate(@policy, :can_write?)
   end
 
   def test_positive_enforce!
@@ -33,6 +33,6 @@ class PolicyTest < Minitest::Test
 
   def test_negative_enforce!
     exception = assert_raises(Nucleus::NotAuthorized) { @policy.enforce!(:owner?) }
-    assert_equal 'You do not have access to: owner?', exception.message
+    assert_equal "You do not have access to: owner?", exception.message
   end
 end
