@@ -1,30 +1,149 @@
 module Nucleus
   class Workflow
-    class Process
-      attr_accessor :state
+    class Node
+      attr_reader :state, :operation, :signals, :prepare_context, :determine_signal
 
-      def initialize
-        @state = :initial
+      def initialize(attrs={})
+        @state = attrs[:state]
+        @operation = attrs[:operation]
+        @signals = attrs[:signals]
+        @prepare_context = attrs[:prepare_context]
+        @determine_signal = attrs[:determine_signal]
       end
     end
 
-    attr_accessor :process, :state
+    class Process
+      attr_accessor :state, :visited
 
-    def initialize(args={})
-      @process = args.fetch(:process) { Process.new }
-      @state = @process&.state || :initial
+      def initialize(state)
+        @state = state
+        @visited = []
+      end
+
+      def visit(state)
+        @state = state
+        @visited.push(state)
+      end
     end
 
-    def self.call(args={})
-      signal = args[:signal] || :initial # graph.nodes.first.signal
-      workflow = new(args)
+    # States
+    ###########################################################################
+    INITIAL_STATE = :initial
+
+    # Signals
+    ###########################################################################
+    CONTINUE = :continue
+    WAIT = :wait
+
+    # Node statuses
+    ###########################################################################
+    OK = :ok
+    FAILED = :failed
+
+    attr_accessor :process, :nodes, :context
+
+    def initialize(process: nil, context: {})
+      @nodes = {}
+      @process = process || Process.new(INITIAL_STATE)
+      @context = build_context(context)
+    end
+
+    def register_node(attrs = {})
+      node = Node.new(attrs)
+
+      @nodes[node.state] = node
+    end
+
+    def init_nodes
+      define
+    end
+
+    # Define the graph here
+    def define
+    end
+    
+    def self.call(signal: nil, process: nil, context: {})
+      workflow = new(process: process, context: context)
+
+      workflow.init_nodes
+      workflow.validate_nodes!
       workflow.execute(signal)
+
+      return workflow.context, workflow.process
     end
 
-    def graph
+    def validate_nodes!
+      start_nodes = nodes.values.filter {|node| node.state == INITIAL_STATE }.size
+
+      raise ArgumentError, "#{self.class}: missing `:initial` start node" if start_nodes.zero?
+      raise ArgumentError, "#{self.class}: more than one start node detected" if start_nodes > 1
     end
 
-    def execute
+    def execute(signal=nil)
+      signal ||= CONTINUE
+      next_signal = nodes[process.state]&.signals[signal]
+      current_node = nodes[next_signal]
+
+      raise ArgumentError, "invalid signal: #{signal}" if current_node.nil?
+      
+      while next_signal
+        result = execute_node(current_node, context)
+        status, next_signal, context = result
+
+        break if status == FAILED
+
+        process.visit(current_node.state)
+        current_node = nodes[next_signal]
+
+        break if next_signal == WAIT
+      end
+
+      context
+    rescue StandardError => e
+      fail_context(@context, e)
+    end
+
+    private
+
+    def build_context(context={})
+      return context if context.is_a?(Nucleus::Operation::Context)
+
+      Nucleus::Operation::Context.new(context)
+    end
+
+    def execute_node(node, context)
+      context = prepare_context(node, context)
+      operation = node.operation
+      
+      operation && operation.call(context)
+
+      status = context.success? ? OK : FAILED
+      next_signal = determine_signal(node, context)
+
+      return status, next_signal, context
+    end
+
+    def prepare_context(node, context)
+      return node.prepare_context.call(context) if node.prepare_context.is_a?(Proc)
+      return self.send(node.prepare_context, context) if node.prepare_context.is_a?(Symbol)
+      return context
+    end
+
+    def determine_signal(node, context)
+      signal = CONTINUE
+      signal = node.determine_signal.call(context) if node.determine_signal.is_a?(Proc)
+      signal = self.send(node.determine_signal, context) if node.determine_signal.is_a?(Symbol)
+      signals = node.signals || {}
+
+      return signals[signal]
+    end
+
+    def fail_context(context, exception)
+      message = "Unhandled exception in #{self.class}: #{exception.message}"
+
+      context.fail!(message, exception: exception)
+    rescue Nucleus::Operation::Context::Error
+      context
     end
   end
 end

@@ -6,7 +6,7 @@ module Nucleus
   autoload :Aggregate, "nucleus/aggregate"
   autoload :Policy, "nucleus/policy"
   autoload :Operation, "nucleus/operation"
-  # autoload :Workflow, "nucleus/workflow"
+  autoload :Workflow, "nucleus/workflow"
   # autoload :Responder, "nucleus/responder"
   # autoload :Exceptions, "nucleus/exceptions"
 end

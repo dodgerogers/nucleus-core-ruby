@@ -18,12 +18,12 @@ class OperationTest < Minitest::Test
     @total = 10
   end
 
-  def execute
+  def subject
     TestOperation.call(total: @total)
   end
 
   def test_call_with_valid_parameters
-    context = execute
+    context = subject
 
     assert_predicate(context, :success?)
     assert_equal(11, context.total)
@@ -31,7 +31,7 @@ class OperationTest < Minitest::Test
 
   def test_call_with_failure
     @total = 20
-    context = execute
+    context = subject
 
     refute_predicate(context, :success?)
     assert_equal("total has reached max", context.message)
@@ -39,12 +39,9 @@ class OperationTest < Minitest::Test
   end
 
   def test_rollback
-    context = Nucleus::Operation::Context.new(
-      total: 5, executed: [TestOperation, TestOperation, TestOperation]
-    )
+    context = Nucleus::Operation::Context.new(total: 5)
+    context = TestOperation.rollback(context)
 
-    TestOperation.rollback(context)
-
-    assert_equal(2, context.total)
+    assert_equal(4, context.total)
   end
 end
