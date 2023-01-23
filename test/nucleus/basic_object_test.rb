@@ -15,7 +15,7 @@ class BasicObjectTest < Minitest::Test
   def test_initialization_with_unknown_property
     to = TestObject.new(unknown: "property")
 
-    assert_equal(to.respond_to?(:unknown), false)
-    assert_equal(to.instance_variable_get("@unknown"), "property")
+    refute_respond_to(to, :unknown)
+    assert_equal("property", to.instance_variable_get(:@unknown))
   end
 end
