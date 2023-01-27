@@ -1,30 +1,5 @@
 require "test_helper"
 
-class SimpleWorkflow < Nucleus::Workflow
-  def define
-    register_node(
-      state: :initial,
-      signals: { continue: :started }
-    )
-    register_node(
-      state: :started,
-      operation: lambda {|context| context.total += 1 },
-      determine_signal: lambda {|context| context.total > 10 ? :pause : :stop },
-      signals: { pause: :paused, stop: :stopped }
-    )
-    register_node(
-      state: :paused,
-      operation: lambda {|_| },
-      signals: { continue: :stopped }
-    )
-    register_node(
-      state: :stopped,
-      operation: lambda {|context| context.total += 2 },
-      determine_signal: lambda {|_| :wait }
-    )
-  end
-end
-
 
 class WorkflowTest < Minitest::Test
   def setup
@@ -72,8 +47,16 @@ class WorkflowTest < Minitest::Test
 
     context, process = subject
 
+    refute(context.success?)
     assert_match(/invalid signal: #{@signal}/, context.message)
-    assert(context.exception.is_a?(ArgumentError))
+    assert_equal(:initial, process.state)
+  end
+
+  def test_failing_context
+    context, process = FailingWorkflow.call(process: @process, signal: @signal, context: { total: @total })
+
+    refute(context.success?)
+    assert_equal("worfkflow error!", context.message)
     assert_equal(:initial, process.state)
   end
 end

@@ -80,11 +80,12 @@ module Nucleus
     end
 
     def execute(signal=nil)
-      signal ||= CONTINUE
-      next_signal = nodes[process.state]&.signals[signal]
-      current_node = nodes[next_signal]
+      signal = signal || CONTINUE
+      current_state = process.state
+      next_signal = (fetch_node(current_state)&.signals || {})[signal]
+      current_node = fetch_node(next_signal)
 
-      raise ArgumentError, "invalid signal: #{signal}" if current_node.nil?
+      context.fail!("invalid signal: #{signal}") if current_node.nil?
       
       while next_signal
         result = execute_node(current_node, context)
@@ -93,11 +94,13 @@ module Nucleus
         break if status == FAILED
 
         process.visit(current_node.state)
-        current_node = nodes[next_signal]
+        current_node = fetch_node(next_signal)
 
         break if next_signal == WAIT
       end
 
+      context
+    rescue Nucleus::Operation::Context::Error
       context
     rescue StandardError => e
       fail_context(@context, e)
@@ -133,13 +136,17 @@ module Nucleus
       signal = CONTINUE
       signal = node.determine_signal.call(context) if node.determine_signal.is_a?(Proc)
       signal = self.send(node.determine_signal, context) if node.determine_signal.is_a?(Symbol)
-      signals = node.signals || {}
+      node_signals = node.signals || {}
 
-      return signals[signal]
+      return node_signals[signal]
+    end
+
+    def fetch_node(state)
+      nodes[state]
     end
 
     def fail_context(context, exception)
-      message = "Unhandled exception in #{self.class}: #{exception.message}"
+      message = "Unhandled exception #{self.class}: #{exception.message}"
 
       context.fail!(message, exception: exception)
     rescue Nucleus::Operation::Context::Error
