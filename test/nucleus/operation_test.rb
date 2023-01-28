@@ -1,47 +1,43 @@
 require "test_helper"
-require "ostruct"
 
-class TestOperation < Nucleus::Operation
-  def call
-    context.fail!("total has reached max", exception: StandardError.new) if context.total >= 20
+describe Nucleus::Operation do
+  describe "self.call" do
+    before do
+      @total = 10
+    end
 
-    context.total += 1
+    subject { TestOperation.call(total: @total) }
+
+    describe "with valid parmeters" do
+      it "returns a successful context" do
+        context = subject
+
+        assert_predicate(context, :success?)
+        assert_equal(11, context.total)
+      end
+    end
+
+    describe "when the context fails" do
+      before do
+        @total = 20
+      end
+
+      it "returns a failed context with message" do
+        context = subject
+
+        refute_predicate(context, :success?)
+        assert_equal("total has reached max", context.message)
+        assert_equal(StandardError, context.exception.class)
+      end
+    end
   end
 
-  def rollback
-    context.total -= 1
-  end
-end
+  describe "self.rollback" do
+    it "reverts expected side effects" do
+      context = Nucleus::Operation::Context.new(total: 5)
+      context = TestOperation.rollback(context)
 
-class OperationTest < Minitest::Test
-  def setup
-    @total = 10
-  end
-
-  def subject
-    TestOperation.call(total: @total)
-  end
-
-  def test_call_with_valid_parameters
-    context = subject
-
-    assert_predicate(context, :success?)
-    assert_equal(11, context.total)
-  end
-
-  def test_call_with_failure
-    @total = 20
-    context = subject
-
-    refute_predicate(context, :success?)
-    assert_equal("total has reached max", context.message)
-    assert_equal(StandardError, context.exception.class)
-  end
-
-  def test_rollback
-    context = Nucleus::Operation::Context.new(total: 5)
-    context = TestOperation.rollback(context)
-
-    assert_equal(4, context.total)
+      assert_equal(4, context.total)
+    end
   end
 end

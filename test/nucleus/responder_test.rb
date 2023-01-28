@@ -1,12 +1,7 @@
 require "test_helper"
 
-class TestCotroller
-  def index
-    true
-  end
-end
-
-class ResponderTest < Minitest::Test
-  def setup
+describe Nucleus::Responder do
+  before do
+    @format = :json
   end
 end

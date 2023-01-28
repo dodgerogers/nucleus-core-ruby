@@ -1,7 +1,9 @@
 require "test_helper"
 
-class AggregateTest < Minitest::Test
-  def test_subclass
-    assert_equal(Nucleus::Aggregate.superclass, Nucleus::BasicObject)
+describe Nucleus::Aggregate do
+  describe "#initialize" do
+    it "is a subclass of BasicObject" do
+      assert_equal(Nucleus::Aggregate.superclass, Nucleus::BasicObject)
+    end
   end
 end

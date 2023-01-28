@@ -1,3 +1,4 @@
+# rubocop:disable Metrics/PerceivedComplexity, Metrics/CyclomaticComplexity, Metrics/ClassLength, Metrics/AbcSize:
 module Nucleus
   class Workflow
     class Node
@@ -176,3 +177,4 @@ module Nucleus
     end
   end
 end
+# rubocop:enable Metrics/PerceivedComplexity, Metrics/CyclomaticComplexity, Metrics/ClassLength, Metrics/AbcSize:

@@ -1,7 +1,7 @@
 require "test_helper"
 
-class NucleusTest < Minitest::Test
-  def setup
+describe Nucleus do
+  before do
     Nucleus.configure do |config|
       config.responder = {
         exceptions: {
@@ -15,22 +15,28 @@ class NucleusTest < Minitest::Test
     end
   end
 
-  def test_configuration
-    exceptions = Nucleus.configuration&.responder&.exceptions
+  describe "#configure" do
+    describe "responder" do
+      it "initializes with expected values" do
+        exceptions = Nucleus.configuration&.responder&.exceptions
 
-    refute_nil(exceptions)
-    assert_equal(Nucleus::BadRequest, exceptions.bad_request)
-    assert_equal(Nucleus::NotFound, exceptions.not_found)
-    assert_equal(Nucleus::Unprocessable, exceptions.unprocessable)
-    assert_equal(Nucleus::NotAuthorized, exceptions.unauthorized)
-    assert_equal(Nucleus::BaseException, exceptions.server_error)
+        refute_nil(exceptions)
+        assert_equal(Nucleus::BadRequest, exceptions.bad_request)
+        assert_equal(Nucleus::NotFound, exceptions.not_found)
+        assert_equal(Nucleus::Unprocessable, exceptions.unprocessable)
+        assert_equal(Nucleus::NotAuthorized, exceptions.unauthorized)
+        assert_equal(Nucleus::BaseException, exceptions.server_error)
+      end
+    end
   end
 
-  def test_resets_configuration
-    refute_nil(Nucleus.configuration.responder)
+  describe "#reset" do
+    it "sets the config back to the initial state" do
+      refute_nil(Nucleus.configuration.responder)
 
-    Nucleus.reset
+      Nucleus.reset
 
-    assert_nil(Nucleus.configuration.responder)
+      assert_nil(Nucleus.configuration.responder)
+    end
   end
 end
