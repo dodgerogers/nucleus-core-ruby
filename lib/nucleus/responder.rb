@@ -1,6 +1,6 @@
 module Nucleus
   class Responder
-    def self.render_response(&blokck)
+    def self.handle_response(&block)
     end
   end
 end
