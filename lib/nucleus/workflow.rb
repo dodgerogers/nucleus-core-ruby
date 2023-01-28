@@ -1,11 +1,12 @@
 module Nucleus
   class Workflow
     class Node
-      attr_reader :state, :operation, :signals, :prepare_context, :determine_signal
+      attr_reader :state, :operation, :rollback, :signals, :prepare_context, :determine_signal
 
       def initialize(attrs={})
         @state = attrs[:state]
         @operation = attrs[:operation]
+        @rollback = attrs[:rollback]
         @signals = attrs[:signals]
         @prepare_context = attrs[:prepare_context]
         @determine_signal = attrs[:determine_signal]
@@ -46,9 +47,11 @@ module Nucleus
       @nodes = {}
       @process = process || Process.new(INITIAL_STATE)
       @context = build_context(context)
+
+      init_nodes
     end
 
-    def register_node(attrs = {})
+    def register_node(attrs={})
       node = Node.new(attrs)
 
       @nodes[node.state] = node
@@ -61,32 +64,46 @@ module Nucleus
     # Define the graph here
     def define
     end
-    
+
     def self.call(signal: nil, process: nil, context: {})
       workflow = new(process: process, context: context)
 
-      workflow.init_nodes
       workflow.validate_nodes!
       workflow.execute(signal)
 
-      return workflow.context, workflow.process
+      [workflow.context, workflow.process]
+    end
+
+    def self.rollback(process:, context:)
+      workflow = new(process: process, context: context)
+      visited = workflow.process.visited.clone
+
+      visited.reverse_each do |state|
+        node = workflow.nodes[state]
+
+        next node.rollback.call(context) if node.rollback.is_a?(Proc)
+
+        next node.operation&.rollback(context)
+      end
     end
 
     def validate_nodes!
-      start_nodes = nodes.values.filter {|node| node.state == INITIAL_STATE }.size
+      start_nodes = nodes.values.count do |node|
+        node.state == INITIAL_STATE
+      end
 
       raise ArgumentError, "#{self.class}: missing `:initial` start node" if start_nodes.zero?
       raise ArgumentError, "#{self.class}: more than one start node detected" if start_nodes > 1
     end
 
     def execute(signal=nil)
-      signal = signal || CONTINUE
+      signal ||= CONTINUE
       current_state = process.state
       next_signal = (fetch_node(current_state)&.signals || {})[signal]
       current_node = fetch_node(next_signal)
 
       context.fail!("invalid signal: #{signal}") if current_node.nil?
-      
+
       while next_signal
         result = execute_node(current_node, context)
         status, next_signal, context = result
@@ -117,28 +134,29 @@ module Nucleus
     def execute_node(node, context)
       context = prepare_context(node, context)
       operation = node.operation
-      
-      operation && operation.call(context)
+
+      operation&.call(context)
 
       status = context.success? ? OK : FAILED
       next_signal = determine_signal(node, context)
 
-      return status, next_signal, context
+      [status, next_signal, context]
     end
 
     def prepare_context(node, context)
       return node.prepare_context.call(context) if node.prepare_context.is_a?(Proc)
-      return self.send(node.prepare_context, context) if node.prepare_context.is_a?(Symbol)
-      return context
+      return send(node.prepare_context, context) if node.prepare_context.is_a?(Symbol)
+
+      context
     end
 
     def determine_signal(node, context)
       signal = CONTINUE
       signal = node.determine_signal.call(context) if node.determine_signal.is_a?(Proc)
-      signal = self.send(node.determine_signal, context) if node.determine_signal.is_a?(Symbol)
+      signal = send(node.determine_signal, context) if node.determine_signal.is_a?(Symbol)
       node_signals = node.signals || {}
 
-      return node_signals[signal]
+      node_signals[signal]
     end
 
     def fetch_node(state)

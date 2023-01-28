@@ -1,6 +1,5 @@
 require "nucleus"
 
-
 class SimpleWorkflow < Nucleus::Workflow
   def define
     register_node(
@@ -9,8 +8,8 @@ class SimpleWorkflow < Nucleus::Workflow
     )
     register_node(
       state: :started,
-      operation: lambda {|context| context.total += 1 },
-      determine_signal: lambda {|context| context.total > 10 ? :pause : :stop },
+      operation: ->(context) { context.total += 1 },
+      determine_signal: ->(context) { context.total > 10 ? :pause : :stop },
       signals: { pause: :paused, stop: :stopped }
     )
     register_node(
@@ -19,8 +18,8 @@ class SimpleWorkflow < Nucleus::Workflow
     )
     register_node(
       state: :stopped,
-      operation: lambda {|context| context.total += 2 },
-      determine_signal: lambda {|_| :wait }
+      operation: ->(context) { context.total += 2 },
+      determine_signal: ->(_) { :wait }
     )
   end
 end
@@ -33,12 +32,43 @@ class FailingWorkflow < Nucleus::Workflow
     )
     register_node(
       state: :failed,
-      operation: lambda {|context| context.fail!("worfkflow error!") },
+      operation: ->(context) { context.fail!("worfkflow error!") },
       determine_signal: { continue: :completed }
     )
     register_node(
       state: :completed,
-      determine_signal: lambda {|_| :wait }
+      determine_signal: ->(_) { :wait }
+    )
+  end
+end
+
+class RollbackWorkflow < Nucleus::Workflow
+  def define
+    register_node(
+      state: :initial,
+      signals: { continue: :started }
+    )
+    register_node(
+      state: :started,
+      operation: ->(context) { context.total += 1 },
+      rollback: ->(context) { context.total -= 1 },
+      signals: { continue: :running }
+    )
+    register_node(
+      state: :running,
+      operation: ->(context) { context.total += 1 },
+      rollback: ->(context) { context.total -= 1 },
+      signals: { continue: :sprinting }
+    )
+    register_node(
+      state: :sprinting,
+      operation: ->(context) { context.total += 1 },
+      rollback: ->(context) { context.total -= 1 },
+      signals: { continue: :stopped }
+    )
+    register_node(
+      state: :stopped,
+      determine_signal: ->(_) { :wait }
     )
   end
 end

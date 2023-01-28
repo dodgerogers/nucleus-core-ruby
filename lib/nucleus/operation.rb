@@ -1,4 +1,4 @@
-require 'ostruct'
+require "ostruct"
 
 module Nucleus
   class Operation
@@ -45,8 +45,8 @@ module Nucleus
       operation = new(args)
 
       operation.call
-      
-      return operation.context
+
+      operation.context
     rescue Context::Error
       operation.context
     end
@@ -56,7 +56,7 @@ module Nucleus
 
       operation.rollback
 
-      return operation.context
+      operation.context
     end
 
     def call

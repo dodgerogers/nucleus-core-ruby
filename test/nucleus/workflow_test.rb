@@ -1,6 +1,5 @@
 require "test_helper"
 
-
 class WorkflowTest < Minitest::Test
   def setup
     @total = 0
@@ -15,7 +14,7 @@ class WorkflowTest < Minitest::Test
   def test_simple_call
     context, process = subject
 
-    assert(context.success?)
+    assert_predicate(context, :success?)
     assert_equal(3, context.total)
     assert_equal(:stopped, process.state)
   end
@@ -26,20 +25,20 @@ class WorkflowTest < Minitest::Test
 
     context, process = subject
 
-    assert(context.success?)
+    assert_predicate(context, :success?)
     assert_equal(2, context.total)
     assert_equal(:stopped, process.state)
   end
 
   def test_determine_signal
-    @total = 10
+    @total = 11
 
     context, process = subject
 
-    assert(context.success?)
-    assert_equal(13, context.total)
+    assert_predicate(context, :success?)
+    assert_equal(14, context.total)
     assert_equal(:stopped, process.state)
-    assert(process.visited.include?(:paused))
+    assert_equal(%i[started paused stopped], process.visited)
   end
 
   def test_invalid_signal
@@ -47,16 +46,31 @@ class WorkflowTest < Minitest::Test
 
     context, process = subject
 
-    refute(context.success?)
+    refute_predicate(context, :success?)
     assert_match(/invalid signal: #{@signal}/, context.message)
     assert_equal(:initial, process.state)
   end
 
-  def test_failing_context
-    context, process = FailingWorkflow.call(process: @process, signal: @signal, context: { total: @total })
+  def test_operation_failing
+    args = { process: @process, signal: @signal, context: { total: @total } }
+    context, process = FailingWorkflow.call(args)
 
-    refute(context.success?)
+    refute_predicate(context, :success?)
     assert_equal("worfkflow error!", context.message)
     assert_equal(:initial, process.state)
+  end
+
+  def test_rollback
+    args = { process: @process, signal: @signal, context: { total: @total } }
+    context, process = RollbackWorkflow.call(args)
+
+    assert_predicate(context, :success?)
+    assert_equal(3, context.total)
+    assert_equal(:stopped, process.state)
+    assert_equal(%i[started running sprinting stopped], process.visited)
+
+    RollbackWorkflow.rollback(process: process, context: context)
+
+    assert_equal(0, context.total)
   end
 end
