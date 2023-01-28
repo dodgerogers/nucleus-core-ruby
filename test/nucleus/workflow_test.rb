@@ -75,6 +75,22 @@ describe Nucleus::Workflow do
         assert_equal(:initial, process.state)
       end
     end
+
+    describe "unhandled exception" do
+      subject do
+        FailingWorkflow.call(process: nil, signal: :raise_exception)
+      end
+
+      it "fails the context" do
+        context, process = subject
+
+        refute_predicate(context, :success?)
+        assert_equal("Unhandled exception FailingWorkflow: not found", context.message)
+        assert(context.exception.is_a?(Nucleus::NotFound))
+        assert_equal("not found", context.exception.message)
+        assert_equal(:initial, process.state)
+      end
+    end
   end
 
   describe "#rollback" do
