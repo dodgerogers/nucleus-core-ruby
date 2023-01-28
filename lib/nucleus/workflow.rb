@@ -57,11 +57,17 @@ module Nucleus
       @nodes[node.state] = node
     end
 
+    def start_node(signals={})
+      raise ArgumentError, "#{self.class}##{__method__}: missing signals" if signals.empty?
+
+      register_node(state: INITIAL_STATE, signals: signals)
+    end
+
     def init_nodes
       define
     end
 
-    # Define the graph here
+    # Override this method to draw the workflow graph
     def define
     end
 
@@ -81,9 +87,8 @@ module Nucleus
       visited.reverse_each do |state|
         node = workflow.nodes[state]
 
+        next node.operation.rollback(context) if node.operation.is_a?(Nucleus::Operation)
         next node.rollback.call(context) if node.rollback.is_a?(Proc)
-
-        next node.operation&.rollback(context)
       end
     end
 
@@ -105,8 +110,7 @@ module Nucleus
       context.fail!("invalid signal: #{signal}") if current_node.nil?
 
       while next_signal
-        result = execute_node(current_node, context)
-        status, next_signal, context = result
+        status, next_signal, @context = execute_node(current_node, context)
 
         break if status == FAILED
 

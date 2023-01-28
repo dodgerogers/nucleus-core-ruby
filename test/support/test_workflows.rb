@@ -2,10 +2,7 @@ require "nucleus"
 
 class SimpleWorkflow < Nucleus::Workflow
   def define
-    register_node(
-      state: :initial,
-      signals: { continue: :started }
-    )
+    start_node(continue: :started)
     register_node(
       state: :started,
       operation: ->(context) { context.total += 1 },
@@ -26,10 +23,7 @@ end
 
 class FailingWorkflow < Nucleus::Workflow
   def define
-    register_node(
-      state: :initial,
-      signals: { continue: :failed }
-    )
+    start_node(continue: :failed)
     register_node(
       state: :failed,
       operation: ->(context) { context.fail!("worfkflow error!") },
@@ -44,10 +38,7 @@ end
 
 class RollbackWorkflow < Nucleus::Workflow
   def define
-    register_node(
-      state: :initial,
-      signals: { continue: :started }
-    )
+    start_node(continue: :started)
     register_node(
       state: :started,
       operation: ->(context) { context.total += 1 },
