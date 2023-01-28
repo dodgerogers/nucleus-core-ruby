@@ -7,6 +7,7 @@ module Nucleus
   autoload :VERSION, "nucleus/version"
   autoload :BasicObject, "nucleus/basic_object"
   autoload :View, "nucleus/view"
+  autoload :Response, "nucleus/responses"
   autoload :Aggregate, "nucleus/aggregate"
   autoload :Policy, "nucleus/policy"
   autoload :Operation, "nucleus/operation"
@@ -14,11 +15,22 @@ module Nucleus
   autoload :Responder, "nucleus/responder"
 
   class Configuration
-    attr_reader :responder
+    attr_reader :logger, :responder
+
+    def logger=(logger)
+      @logger = logger
+    end
 
     def responder=(args={})
-      exceptions = objectify(args[:exceptions])
-      @responder = objectify(exceptions: exceptions)
+      statuses = %i(not_found bad_request forbidden unprocessable server_error)
+      exception_map = args
+        .fetch(:exceptions) { {} }
+        .slice(*statuses)
+        .reduce({}) do |acc, (key, value)|
+          acc.merge(key => Array.wrap(value))
+        end
+
+      @responder = objectify(exceptions: objectify(exception_map))
     end
 
     private
