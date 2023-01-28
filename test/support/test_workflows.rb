@@ -23,11 +23,16 @@ end
 
 class FailingWorkflow < Nucleus::Workflow
   def define
-    start_node(continue: :failed)
+    start_node(continue: :failed, raise_exception: :unhandled_exception)
     register_node(
       state: :failed,
       operation: ->(context) { context.fail!("worfkflow error!") },
-      determine_signal: { continue: :completed }
+      signals: { continue: :completed }
+    )
+    register_node(
+      state: :unhandled_exception,
+      operation: ->(_context) { raise Nucleus::NotFound, "not found" },
+      determine_signal: ->(_) { :wait }
     )
     register_node(
       state: :completed,
