@@ -1,21 +1,31 @@
 require "test_helper"
 
-class TestObject < Nucleus::BasicObject
-  attr_accessor :name, :number
-end
+describe Nucleus::BasicObject do
+  describe "#initialize" do
+    before do
+      @args = { name: "Bob", number: 123 }
+    end
 
-class BasicObjectTest < Minitest::Test
-  def test_initialization_with_hash
-    to = TestObject.new(name: "Bob", number: 123)
+    subject { TestObject.new(@args) }
 
-    assert_equal("Bob", to.name)
-    assert_equal(123, to.number)
-  end
+    it "populates expected properties" do
+      to = subject
 
-  def test_initialization_with_unknown_property
-    to = TestObject.new(unknown: "property")
+      assert_equal("Bob", to.name)
+      assert_equal(123, to.number)
+    end
 
-    refute_respond_to(to, :unknown)
-    assert_equal("property", to.instance_variable_get(:@unknown))
+    describe "unknown property" do
+      before do
+        @args = { unknown: "property" }
+      end
+
+      it "sets a private instance variable, but not the public attribute method" do
+        to = subject
+
+        refute_respond_to(to, :unknown)
+        assert_equal("property", to.instance_variable_get(:@unknown))
+      end
+    end
   end
 end
