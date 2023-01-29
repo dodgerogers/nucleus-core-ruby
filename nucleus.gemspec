@@ -1,7 +1,7 @@
 require_relative "lib/nucleus/version"
 
 Gem::Specification.new do |spec|
-  spec.name = "nucleus"
+  spec.name = "nucleus-framework"
   spec.version = Nucleus::VERSION
   spec.authors = ["dodgerogers"]
   spec.email = ["dodgerogers@hotmail.com"]
@@ -9,7 +9,6 @@ Gem::Specification.new do |spec|
   spec.homepage = "https://github.com/dodgerogers/nucleus"
   spec.license = "MIT"
   spec.required_ruby_version = ">= 2.6"
-
   spec.metadata = {
     "bug_tracker_uri" => "https://github.com/dodgerogers/nucleus/issues",
     "changelog_uri" => "https://github.com/dodgerogers/nucleus/releases",
