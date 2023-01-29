@@ -1,4 +1,4 @@
-class Nucleus::Response < Nucleus::BasicObject
+class Nucleus::ResponseAdapter < Nucleus::BasicObject
   def initialize(attrs={})
     attributes = defaults
       .merge(attrs)
@@ -24,7 +24,7 @@ class Nucleus::Response < Nucleus::BasicObject
   end
 end
 
-class Nucleus::NoResponse < Nucleus::Response
+class Nucleus::NoResponse < Nucleus::ResponseAdapter
   def initialize(attrs={})
     attrs = attrs.merge(content: nil, type: "text/html; charset=utf-8")
 
@@ -32,7 +32,7 @@ class Nucleus::NoResponse < Nucleus::Response
   end
 end
 
-class Nucleus::TextResponse < Nucleus::Response
+class Nucleus::TextResponse < Nucleus::ResponseAdapter
   def initialize(attrs={})
     attrs = attrs.merge(type: "application/text")
 
@@ -40,7 +40,7 @@ class Nucleus::TextResponse < Nucleus::Response
   end
 end
 
-class Nucleus::JsonResponse < Nucleus::Response
+class Nucleus::JsonResponse < Nucleus::ResponseAdapter
   def initialize(attrs={})
     attrs = attrs.merge(type: "application/json")
 
@@ -48,7 +48,7 @@ class Nucleus::JsonResponse < Nucleus::Response
   end
 end
 
-class Nucleus::XmlResponse < Nucleus::Response
+class Nucleus::XmlResponse < Nucleus::ResponseAdapter
   def initialize(attrs={})
     attrs = attrs.merge(type: "application/xml")
 
@@ -56,7 +56,7 @@ class Nucleus::XmlResponse < Nucleus::Response
   end
 end
 
-class Nucleus::CsvResponse < Nucleus::Response
+class Nucleus::CsvResponse < Nucleus::ResponseAdapter
   def initialize(attrs={})
     attrs = attrs.merge(
       disposition: "attachment",
@@ -68,7 +68,7 @@ class Nucleus::CsvResponse < Nucleus::Response
   end
 end
 
-class Nucleus::PdfResponse < Nucleus::Response
+class Nucleus::PdfResponse < Nucleus::ResponseAdapter
   def initialize(attrs={})
     attrs = attrs.merge(
       disposition: "inline",

@@ -10,7 +10,7 @@ module Nucleus
   autoload :BasicObject, "nucleus/basic_object"
   autoload :View, "nucleus/views/view"
   autoload :ErrorView, "nucleus/views/error_view"
-  autoload :Response, "nucleus/response"
+  autoload :ResponseAdapter, "nucleus/response_adapter"
   autoload :Aggregate, "nucleus/aggregate"
   autoload :Policy, "nucleus/policy"
   autoload :Operation, "nucleus/operation"
