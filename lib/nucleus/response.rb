@@ -1,23 +1,19 @@
-require "nucleus/rack"
-
 class Nucleus::Response < Nucleus::BasicObject
-  attr_accessor :content, :filename, :disposition, :headers, :status, :location
-
   def initialize(attrs={})
-    attrs
-      .reverse_merge(defaults)
-      .with_indifferent_access
-      .tap({}) do |hash|
+    attributes = defaults
+      .merge(attrs)
+      .slice(*defaults.keys)
+      .tap do |hash|
         hash[:status] = status_code(hash[:status])
       end
 
-    super(attrs)
+    super(attributes)
   end
 
   private
 
   def defaults
-    { context: "", headers: {}, status: 200, location: nil }
+    { content: "", headers: {}, status: 200, location: nil }
   end
 
   def status_code(status=nil)
@@ -28,7 +24,23 @@ class Nucleus::Response < Nucleus::BasicObject
   end
 end
 
-class Nucleus::Json::Response < Nucleus::Response
+class Nucleus::NoResponse < Nucleus::Response
+  def initialize(attrs={})
+    attrs = attrs.merge(content: nil, type: "text/html; charset=utf-8")
+
+    super(attrs)
+  end
+end
+
+class Nucleus::TextResponse < Nucleus::Response
+  def initialize(attrs={})
+    attrs = attrs.merge(type: "application/text")
+
+    super(attrs)
+  end
+end
+
+class Nucleus::JsonResponse < Nucleus::Response
   def initialize(attrs={})
     attrs = attrs.merge(type: "application/json")
 
@@ -36,7 +48,7 @@ class Nucleus::Json::Response < Nucleus::Response
   end
 end
 
-class Nucleus::Xml::Response < Nucleus::Response
+class Nucleus::XmlResponse < Nucleus::Response
   def initialize(attrs={})
     attrs = attrs.merge(type: "application/xml")
 
@@ -44,7 +56,7 @@ class Nucleus::Xml::Response < Nucleus::Response
   end
 end
 
-class Nucleus::Csv::Response < Nucleus::Response
+class Nucleus::CsvResponse < Nucleus::Response
   def initialize(attrs={})
     attrs = attrs.merge(
       disposition: "attachment",
@@ -56,7 +68,7 @@ class Nucleus::Csv::Response < Nucleus::Response
   end
 end
 
-class Nucleus::Pdf::Response < Nucleus::Response
+class Nucleus::PdfResponse < Nucleus::Response
   def initialize(attrs={})
     attrs = attrs.merge(
       disposition: "inline",

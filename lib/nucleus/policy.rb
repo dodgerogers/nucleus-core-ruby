@@ -13,8 +13,7 @@ module Nucleus
       policy_methods.each do |policy_method_and_args|
         next if send(*policy_method_and_args)
 
-        is_array = policy_method_and_args.respond_to?(:first)
-        name = (is_array && policy_method_and_args.first) || policy_method_and_args
+        name = Array.wrap(policy_method_and_args).first
         message = "You do not have access to: #{name}"
 
         raise Nucleus::NotAuthorized, message

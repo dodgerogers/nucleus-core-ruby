@@ -5,11 +5,11 @@ describe Nucleus do
     Nucleus.configure do |config|
       config.responder = {
         exceptions: {
-          bad_request: Nucleus::BadRequest,
-          not_found: Nucleus::NotFound,
-          unprocessable: Nucleus::Unprocessable,
-          unauthorized: Nucleus::NotAuthorized,
-          server_error: Nucleus::BaseException
+          bad_request: NotImplementedError,
+          not_found: LoadError,
+          unprocessable: RuntimeError,
+          unauthorized: SecurityError,
+          server_error: SignalException
         }
       }
     end
@@ -21,22 +21,34 @@ describe Nucleus do
         exceptions = Nucleus.configuration&.responder&.exceptions
 
         refute_nil(exceptions)
-        assert_equal(Nucleus::BadRequest, exceptions.bad_request)
-        assert_equal(Nucleus::NotFound, exceptions.not_found)
-        assert_equal(Nucleus::Unprocessable, exceptions.unprocessable)
-        assert_equal(Nucleus::NotAuthorized, exceptions.unauthorized)
-        assert_equal(Nucleus::BaseException, exceptions.server_error)
+        assert_equal([NotImplementedError], exceptions.bad_request)
+        assert_equal([LoadError], exceptions.not_found)
+        assert_equal([RuntimeError], exceptions.unprocessable)
+        assert_equal([SecurityError], exceptions.unauthorized)
+        assert_equal([SignalException], exceptions.server_error)
       end
     end
   end
 
   describe "#reset" do
     it "sets the config back to the initial state" do
-      refute_nil(Nucleus.configuration.responder)
+      exceptions = Nucleus.configuration.responder.exceptions
+
+      refute_nil(exceptions.bad_request)
+      refute_nil(exceptions.not_found)
+      refute_nil(exceptions.unprocessable)
+      refute_nil(exceptions.unauthorized)
+      refute_nil(exceptions.server_error)
 
       Nucleus.reset
 
-      assert_nil(Nucleus.configuration.responder)
+      exceptions = Nucleus.configuration.responder.exceptions
+
+      assert_nil(exceptions.bad_request)
+      assert_nil(exceptions.not_found)
+      assert_nil(exceptions.unprocessable)
+      assert_nil(exceptions.unauthorized)
+      assert_nil(exceptions.server_error)
     end
   end
 end

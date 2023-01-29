@@ -1,3 +1,1 @@
-class TestObject < Nucleus::BasicObject
-  attr_accessor :name, :number
-end
+class TestObject < Nucleus::BasicObject; end
