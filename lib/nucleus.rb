@@ -2,11 +2,15 @@ require "ostruct"
 require "nucleus/exceptions"
 require "json"
 
+Dir[File.join(__dir__, "nucleus", "extensions", "*.rb")].sort.each { |file| require file }
+
 module Nucleus
   autoload :CLI, "nucleus/cli"
   autoload :VERSION, "nucleus/version"
   autoload :BasicObject, "nucleus/basic_object"
-  autoload :View, "nucleus/view"
+  autoload :View, "nucleus/views/view"
+  autoload :ErrorView, "nucleus/views/error_view"
+  autoload :Response, "nucleus/response"
   autoload :Aggregate, "nucleus/aggregate"
   autoload :Policy, "nucleus/policy"
   autoload :Operation, "nucleus/operation"
@@ -14,14 +18,36 @@ module Nucleus
   autoload :Responder, "nucleus/responder"
 
   class Configuration
+    attr_accessor :logger
     attr_reader :responder
 
+    def initialize
+      @responder = objectify(exceptions: objectify(exception_defaults))
+      @logger = nil
+    end
+
     def responder=(args={})
-      exceptions = objectify(args[:exceptions])
-      @responder = objectify(exceptions: exceptions)
+      exception_map = args
+        .fetch(:exceptions, exception_defaults)
+        .slice(*exception_defaults.keys)
+        .reduce({}) do |acc, (key, value)|
+          acc.merge(key => Array.wrap(value))
+        end
+
+      @responder = objectify(exceptions: objectify(exception_map))
     end
 
     private
+
+    def exception_defaults
+      {
+        not_found: nil,
+        bad_request: nil,
+        unauthorized: nil,
+        unprocessable: nil,
+        server_error: nil
+      }
+    end
 
     def objectify(hash)
       OpenStruct.new(hash)
