@@ -81,12 +81,13 @@ module Nucleus
     end
 
     def render_view(view)
-      format_method = "#{request_format}_response".to_sym
-      implements_format = view.respond_to?(format_method)
-      response_adapter = view.send(format_method) if implements_format
-      response_adapter = view.json_response unless implements_format
+      format_rendering = "#{request_format}_response".to_sym
+      renders_format = view.respond_to?(format_rendering)
+      format_response = view.send(format_rendering) if renders_format
 
-      render_response(response_adapter)
+      raise Nucleus::BadRequest, "#{request_format} is not supported" if format_response.nil?
+
+      render_response(format_response)
     end
 
     # rubocop:disable Lint/DuplicateBranch
