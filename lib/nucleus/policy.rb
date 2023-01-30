@@ -5,7 +5,7 @@ module Nucleus
     attr_reader :user, :record
 
     def initialize(user, record=nil)
-      @user   = user
+      @user = user
       @record = record
     end
 

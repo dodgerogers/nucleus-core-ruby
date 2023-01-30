@@ -4,7 +4,7 @@ executors:
     parameters:
       version:
         description: "Ruby version number"
-        default: "3.2"
+        default: "2.6.10"
         type: string
     docker:
       - image: cimg/ruby:<< parameters.version >>
@@ -15,7 +15,7 @@ commands:
     parameters:
       version:
         description: "Ruby version number"
-        default: "3.2"
+        default: "2.6.10"
         type: string
     steps:
       - restore_cache:
@@ -38,13 +38,13 @@ jobs:
     steps:
       - checkout
       - bundle_install
-      - run: bundle exec rubocop
+      - run: bundle exec bin/rubocop
 
   test:
     parameters:
       version:
         description: "Ruby version number"
-        default: "3.2"
+        default: "2.6.10"
         type: string
     executor:
       name: ruby
@@ -53,7 +53,7 @@ jobs:
       - checkout
       - bundle_install:
           version: << parameters.version >>
-      - run: bundle exec rake test TESTOPTS="--ci-dir=./reports"
+      - run: bundle exec bin/rake test TESTOPTS="--ci-dir=./reports"
       - store_test_results:
           path: ./reports
 

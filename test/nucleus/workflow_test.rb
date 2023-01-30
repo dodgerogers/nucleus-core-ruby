@@ -99,7 +99,7 @@ describe Nucleus::Workflow do
     end
 
     it "reverts specified side effects" do
-      context, process = RollbackWorkflow.call(@args)
+      context, process = RollbackWorkflow.call(context: @args)
 
       assert_predicate(context, :success?)
       assert_equal(3, context.total)

@@ -1,11 +1,13 @@
 require "securerandom"
 
 class TestController
+  include Nucleus::Responder
+
   def index
-    Nucleus::Responder.handle_response do
+    handle_response do
       policy.enforce!(:can_write?)
 
-      context, _process = SimpleWorkflow.call(total: 5)
+      context, _process = SimpleWorkflow.call(context: { total: 5 })
 
       return Nucleus::View.new(total: context.total) if context.success?
 

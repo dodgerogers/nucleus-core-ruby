@@ -5,7 +5,7 @@ Gem::Specification.new do |spec|
   spec.version = Nucleus::VERSION
   spec.authors = ["dodgerogers"]
   spec.email = ["dodgerogers@hotmail.com"]
-  spec.summary = "Business Logic Framework"
+  spec.summary = "A Ruby business logic framework"
   spec.homepage = "https://github.com/dodgerogers/nucleus"
   spec.license = "MIT"
   spec.required_ruby_version = ">= 2.6"

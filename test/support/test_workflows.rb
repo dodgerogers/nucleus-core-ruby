@@ -5,7 +5,10 @@ class SimpleWorkflow < Nucleus::Workflow
     start_node(continue: :started)
     register_node(
       state: :started,
-      operation: ->(context) { context.total += 1 },
+      operation: lambda do |context|
+        context.total ||= 0
+        context.total += 1
+      end,
       determine_signal: ->(context) { context.total > 10 ? :pause : :stop },
       signals: { pause: :paused, stop: :stopped }
     )
@@ -46,7 +49,10 @@ class RollbackWorkflow < Nucleus::Workflow
     start_node(continue: :started)
     register_node(
       state: :started,
-      operation: ->(context) { context.total += 1 },
+      operation: lambda do |context|
+        context.total ||= 0
+        context.total += 1
+      end,
       rollback: ->(context) { context.total -= 1 },
       signals: { continue: :running }
     )

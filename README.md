@@ -4,11 +4,11 @@
 [![Circle](https://circleci.com/gh/dodgerogers/nucleus-framework/tree/main.svg?style=shield)](https://app.circleci.com/pipelines/github/dodgerogers/nucleus?branch=main)
 [![Code Climate](https://codeclimate.com/github/dodgerogers/nucleus-framework/badges/gpa.svg)](https://codeclimate.com/github/dodgerogers/nucleus)
 
-Nucleus is an optionated framework of components with preordained respoonsibilities that enable the expression of business logic agnostic to the framework.
+Nucleus is an optionated framework of components with preordained responsibilities that allow the expression of business logic agnostic to the framework.
 
 The following classes are provided so business cases can be orchestrated, expressed consistently, and tested in isolation.
 
-- Policy (Authorization) - can the user perform this process?
+- Policy (Authorization) - can this be performed?
 - Operation (Service class) - Execute a single unit of business logic (ScheduleAppointment, CancelOrder, UpdateAddress)
 - Workflow (Service orchestration) - Orchestrate a complex business workflow using Operations (ApproveLoan, TakePayment, CancelFulfillments)
 - View (Presentation) - A presentation object to be adapted to multiple output formats (OrderView, CustomerView)
@@ -19,7 +19,7 @@ Below is a trivial example of what using Nucleus would look like using Rails:
 
 ```ruby
 # controllers/calculate_amount.rb
-class PaymentsController
+class PaymentsController < ApplicationController
   def create
     Nucleus::Responder.handle_response do
       Policy.new(current_user).enforce!(:can_write?)
@@ -63,7 +63,7 @@ class HandleCheckoutWorkflow < Nucleus::Workflow
   end
 end
 
-# operations/calculate_amount.rb
+# app/operations/fetch_shopping_cart.rb
 class FetchShoppingCart < Nucleus::Operation
   def call
     cart = ShoppingCartRepository.find(context.cart_id)
@@ -74,7 +74,7 @@ class FetchShoppingCart < Nucleus::Operation
   end
 end
 
-# repositories/shopping_cart_repository.rb
+# app/repositories/shopping_cart_repository.rb
 class ShoppingCartRepository < Nucleus::Repository
   def self.find(cart_id)
     cart = ShoppingCart.find(cart_id)
@@ -95,14 +95,14 @@ class ShoppingCartRepository < Nucleus::Repository
   end
 end
 
-# aggregates/shopping_cart.rb
+# app/aggregates/shopping_cart.rb
 class ShoppingCart::Aggregate < Nucleus::Aggregate
   def initialize(cart)
     super(id: cart.id, price: cart.price, paid: cart.paid, created_at: cart.created_at)
   end
 end
 
-# operations/apply_discount.rb
+# app/operations/apply_discount_to_shopping_cart.rb
 class ApplyDiscountToShoppingCart < Nucleus::Operation
   def call
     cart = ShoppingCartRepository.discount(context.cart_id, 0.75)
@@ -113,7 +113,7 @@ class ApplyDiscountToShoppingCart < Nucleus::Operation
   end
 end
 
-# views/payments_view.rb
+# app/views/payments_view.rb
 class Nucleus::PaymentView < Nucleus::View
   def initialize(cart)
     super(price: cart.price, paid: cart.paid, created_at: cart.created_at)
@@ -136,6 +136,10 @@ class Nucleus::PaymentView < Nucleus::View
     pdf_string = generate_pdf_string(price, paid)
 
     Nucleus::PdfResponse.new(content: pdf_string)
+  end
+
+  private def generate_pdf_string(price, paid)
+    # pdf string geenration...
   end
 end
 ```
