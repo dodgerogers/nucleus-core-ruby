@@ -10,15 +10,18 @@ describe Nucleus do
           unprocessable: RuntimeError,
           unauthorized: SecurityError,
           server_error: SignalException
-        }
+        },
+        adapter: TestAdapter
       }
     end
   end
 
   describe "#configure" do
     describe "responder" do
-      it "initializes with expected values" do
-        exceptions = Nucleus.configuration&.responder&.exceptions
+      subject { Nucleus.configuration.responder }
+
+      it "initializes with expected exception mapping" do
+        exceptions = subject.exceptions
 
         refute_nil(exceptions)
         assert_equal([NotImplementedError], exceptions.bad_request)
@@ -26,6 +29,15 @@ describe Nucleus do
         assert_equal([RuntimeError], exceptions.unprocessable)
         assert_equal([SecurityError], exceptions.unauthorized)
         assert_equal([SignalException], exceptions.server_error)
+      end
+
+      it "initializes with expected adapter methods" do
+        adapter = subject.adapter
+
+        refute_nil(adapter)
+        Nucleus::Configuration::ADAPTER_METHODS.each do |adapter_method|
+          assert_respond_to(adapter, adapter_method)
+        end
       end
     end
   end

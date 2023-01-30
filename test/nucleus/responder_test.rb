@@ -2,7 +2,9 @@ require "test_helper"
 
 describe Nucleus::Responder do
   before do
-    @format = :json
+    Nucleus.configure do |config|
+      config.responder = { adapter: TestAdapter }
+    end
   end
 
   describe "success" do
