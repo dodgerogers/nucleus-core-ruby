@@ -4,35 +4,42 @@
 [![Circle](https://circleci.com/gh/dodgerogers/nucleus-framework/tree/main.svg?style=shield)](https://app.circleci.com/pipelines/github/dodgerogers/nucleus?branch=main)
 [![Code Climate](https://codeclimate.com/github/dodgerogers/nucleus-framework/badges/gpa.svg)](https://codeclimate.com/github/dodgerogers/nucleus)
 
-Nucleus is an optionated framework of components with preordained responsibilities that allow the expression of business logic agnostic to the framework.
+Nucleus is an framework to express and orchestrate business logic agnostic to the framework.
 
-The following classes are provided so business cases can be orchestrated, expressed consistently, and tested in isolation.
+Here are all the classes Nucleus exposes. They have preordained responsibilities, can be composed together, and tested simply.
 
-- Policy (Authorization) - can this be performed?
-- Operation (Service class) - Execute a single unit of business logic (ScheduleAppointment, CancelOrder, UpdateAddress)
-- Workflow (Service orchestration) - Orchestrate a complex business workflow using Operations (ApproveLoan, TakePayment, CancelFulfillments)
-- View (Presentation) - A presentation object to be adapted to multiple output formats (OrderView, CustomerView)
-- Repository (Data access) - Handles interactions with a data source where and however it is stored, such that callers are unaware to the implementation details, but are returned an object the application owns and defines (see Aggregates) below. External data sources could be: an external API, ActiveRecord, a file, etc...
-- Aggregate (Domain/business Object) - An object returned from repositories such that changes to the external data schema do not flow into the app unknowingly.
+- Policy (Authorization) - Can this user perform `X`?
+- Operation (Services) - Execute a single unit of business logic. or side effect (ScheduleAppointment, CancelOrder, UpdateAddress).
+- Workflow (Service Orchestration) - Excecute multiple units of work, and side effects (ApproveLoan, TakePayment, CancelFulfillments).
+- View (Presentation) - A presentation object which can render to multiple formats.
+- Repository (Data access) - Interacts with data sources to hide the implementation details to callers, and return Aggregates. Data sources could be an API, ActiveRecord, SQL, a local file, etc.
+- Aggregate (Domain/business Object) - Maps data from the data source to an object the aplication defines, known as an anti corruption layer.
 
-Below is a trivial example of what using Nucleus would look like using Rails:
+Below is an example using Nucleus with Rails:
 
 ```ruby
 # controllers/calculate_amount.rb
 class PaymentsController < ApplicationController
   def create
     Nucleus::Responder.handle_response do
-      Policy.new(current_user).enforce!(:can_write?)
+      policy.enforce!(:can_write?)
 
-      invoice_params = params.slice(:cart_id)
       context, _process = HandleCheckoutWorkflow.call(invoice_params)
 
-      if context.success?
-        return PaymentView.new(cart: context.cart, paid: context.paid)
-      else
-        return context
-      end
+      return context if !context.success?
+
+      return PaymentView.new(cart: context.cart, paid: context.paid)
     end
+  end
+
+  private
+
+  def policy
+    Policy.new(current_user)
+  end
+
+  def invoice_params
+    params.slice(:cart_id)
   end
 end
 
@@ -43,7 +50,7 @@ class HandleCheckoutWorkflow < Nucleus::Workflow
     register_node(
       state: :calculate_amount,
       operation: FetchShoppingCart
-      determine_signal: ->(context) { context.price > 10 ? :discount : :pay }
+      determine_signal: ->(context) { context.cart.total > 10 ? :discount : :pay }
       signals: { discount: :apply_discount, pay: :take_payment }
     )
     register_node(
@@ -87,7 +94,7 @@ class ShoppingCartRepository < Nucleus::Repository
   def self.discount(cart_id, percentage)
     cart = find(cart_id, percentage=0.5)
 
-    cart.update!(price: cart.price * percentage, paid: true)
+    cart.update!(total: cart.total * percentage, paid: true)
 
     return ShoppingCart::Aggregate.new(cart)
   rescue Nucleus::NotFound => e
@@ -95,10 +102,14 @@ class ShoppingCartRepository < Nucleus::Repository
   end
 end
 
+class ShoppingCart < ActiveRecord::Base
+  # ...
+end
+
 # app/aggregates/shopping_cart.rb
 class ShoppingCart::Aggregate < Nucleus::Aggregate
   def initialize(cart)
-    super(id: cart.id, price: cart.price, paid: cart.paid, created_at: cart.created_at)
+    super(id: cart.id, total: cart.total, paid: cart.paid, created_at: cart.created_at)
   end
 end
 
@@ -116,7 +127,7 @@ end
 # app/views/payments_view.rb
 class Nucleus::PaymentView < Nucleus::View
   def initialize(cart)
-    super(price: cart.price, paid: cart.paid, created_at: cart.created_at)
+    super(total: "$#{cart.total}", paid: cart.paid, created_at: cart.created_at)
   end
 
   def json_response
@@ -139,7 +150,7 @@ class Nucleus::PaymentView < Nucleus::View
   end
 
   private def generate_pdf_string(price, paid)
-    # pdf string geenration...
+    # pdf string genration...
   end
 end
 ```
