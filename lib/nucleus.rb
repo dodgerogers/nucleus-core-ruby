@@ -22,6 +22,9 @@ module Nucleus
     attr_accessor :logger
     attr_reader :responder
 
+    EXCEPTIONS = %i[not_found bad_request unauthorized unprocessable server_error].freeze
+    ADAPTER_METHODS = %i[render_json render_xml render_text render_pdf render_csv render_nothing].freeze
+
     def initialize
       @responder = objectify(adapter: nil, exceptions: objectify(exception_defaults))
       @logger = nil
@@ -37,10 +40,7 @@ module Nucleus
           end
       )
 
-      adapter = args.fetch(:adapter, {}).tap do |a|
-        verify_adapter!(a)
-      end
-
+      adapter = args[:adapter].tap { |a| verify_adapter!(a) }
       @responder = objectify(
         exceptions: exceptions,
         adapter: adapter
@@ -54,17 +54,18 @@ module Nucleus
     end
 
     def exception_defaults
-      exceptions = %i[not_found bad_request unauthorized unprocessable server_error]
-
-      exceptions.reduce({}) { |acc, ex| acc.merge(ex => nil) }
+      EXCEPTIONS.reduce({}) { |acc, ex| acc.merge(ex => nil) }
     end
 
     def verify_adapter!(adapter)
-      adaptation_methods = %i[render_json render_xml render_text render_pdf render_csv render_nothing]
+      current_adapter_methods = Set[*(adapter.methods - Object.methods)]
+      required_adapter_methods = ADAPTER_METHODS.to_set
 
-      return if Set[adapter.methods].subset?(adaptation_methods.to_set)
+      return if current_adapter_methods == required_adapter_methods
 
-      raise ArgumentError, "responder.adapter must implement: #{adaptation_methods}"
+      missing = current_adapter_methods.subtract(required_adapter_methods)
+
+      raise ArgumentError, "responder.adapter must implement: #{missing}"
     end
   end
 

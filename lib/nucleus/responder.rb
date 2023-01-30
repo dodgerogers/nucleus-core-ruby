@@ -1,4 +1,3 @@
-# rubocop:disable Metrics/ModuleLength
 require "set"
 
 module Nucleus
@@ -73,28 +72,22 @@ module Nucleus
       render_response(format_response)
     end
 
-    # rubocop:disable Lint/DuplicateBranch
     def render_response(entity)
       render_headers(entity.headers)
 
-      case entity.class
-      when Nucleus::JsonResponse
-        render_json(entity)
-      when Nucleus::XmlResponse
-        render_xml(entity)
-      when Nucleus::PdfResponse
-        render_pdf(entity)
-      when Nucleus::CsvResponse
-        render_csv(entity)
-      when Nucleus::TextResponse
-        render_text(entity)
-      when Nucleus::NoResponse
-        render_nothing(entity)
-      else
-        render_nothing(entity)
-      end
+      render_method = {
+        Nucleus::JsonResponse => :render_json,
+        Nucleus::XmlResponse => :render_xml,
+        Nucleus::PdfResponse => :render_pdf,
+        Nucleus::CsvResponse => :render_csv,
+        Nucleus::TextResponse => :render_text,
+        Nucleus::NoResponse => :render_nothing
+      }.fetch(entity.class, nil)
+
+      framework_adapter = Nucleus.configuration.responder.adapter
+
+      framework_adapter&.send(render_method, entity)
     end
-    # rubocop:enable Lint/DuplicateBranch
 
     def render_headers(headers={})
       (headers || {}).each do |k, v|
@@ -102,31 +95,6 @@ module Nucleus
 
         response.set_header(formatted_key, v)
       end
-    end
-
-    # TODO: Adaptation to framework
-    def render_pdf(entity)
-      entity
-    end
-
-    def render_csv(entity)
-      entity
-    end
-
-    def render_json(entity)
-      entity
-    end
-
-    def render_xml(entity)
-      entity
-    end
-
-    def render_text(entity)
-      entity
-    end
-
-    def render_nothing(entity)
-      entity
     end
 
     # rubocop:disable Lint/DuplicateBranch
@@ -153,4 +121,3 @@ module Nucleus
     end
   end
 end
-# rubocop:enable Metrics/ModuleLength
