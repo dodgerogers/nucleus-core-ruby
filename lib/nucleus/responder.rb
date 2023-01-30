@@ -1,3 +1,4 @@
+# rubocop:disable Metrics/ModuleLength
 require "set"
 
 module Nucleus
@@ -81,8 +82,10 @@ module Nucleus
         render_json(entity)
       when Nucleus::XmlResponse
         render_xml(entity)
-      when Nucleus::PdfResponse, Nucleus::CsvResponse
-        render_data_stream(entity)
+      when Nucleus::PdfResponse
+        render_pdf(entity)
+      when Nucleus::CsvResponse
+        render_csv(entity)
       when Nucleus::TextResponse
         render_text(entity)
       when Nucleus::NoResponse
@@ -102,7 +105,11 @@ module Nucleus
     end
 
     # TODO: Adaptation to framework
-    def render_data_stream(entity)
+    def render_pdf(entity)
+      entity
+    end
+
+    def render_csv(entity)
       entity
     end
 
@@ -146,3 +153,4 @@ module Nucleus
     end
   end
 end
+# rubocop:enable Metrics/ModuleLength

@@ -1,6 +1,7 @@
 require "ostruct"
 require "nucleus/exceptions"
 require "json"
+require "set"
 
 Dir[File.join(__dir__, "nucleus", "extensions", "*.rb")].sort.each { |file| require file }
 
@@ -22,35 +23,48 @@ module Nucleus
     attr_reader :responder
 
     def initialize
-      @responder = objectify(exceptions: objectify(exception_defaults))
+      @responder = objectify(adapter: nil, exceptions: objectify(exception_defaults))
       @logger = nil
     end
 
     def responder=(args={})
-      exception_map = args
-        .fetch(:exceptions, exception_defaults)
-        .slice(*exception_defaults.keys)
-        .reduce({}) do |acc, (key, value)|
-          acc.merge(key => Array.wrap(value))
-        end
+      exceptions = objectify(
+        args
+          .fetch(:exceptions, exception_defaults)
+          .slice(*exception_defaults.keys)
+          .reduce({}) do |acc, (key, value)|
+            acc.merge(key => Array.wrap(value))
+          end
+      )
 
-      @responder = objectify(exceptions: objectify(exception_map))
+      adapter = args.fetch(:adapter, {}).tap do |a|
+        verify_adapter!(a)
+      end
+
+      @responder = objectify(
+        exceptions: exceptions,
+        adapter: adapter
+      )
     end
 
     private
 
-    def exception_defaults
-      {
-        not_found: nil,
-        bad_request: nil,
-        unauthorized: nil,
-        unprocessable: nil,
-        server_error: nil
-      }
-    end
-
     def objectify(hash)
       OpenStruct.new(hash)
+    end
+
+    def exception_defaults
+      exceptions = %i[not_found bad_request unauthorized unprocessable server_error]
+
+      exceptions.reduce({}) { |acc, ex| acc.merge(ex => nil) }
+    end
+
+    def verify_adapter!(adapter)
+      adaptation_methods = %i[render_json render_xml render_text render_pdf render_csv render_nothing]
+
+      return if Set[adapter.methods].subset?(adaptation_methods.to_set)
+
+      raise ArgumentError, "responder.adapter must implement: #{adaptation_methods}"
     end
   end
 

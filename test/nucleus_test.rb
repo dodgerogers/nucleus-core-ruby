@@ -3,6 +3,12 @@ require "test_helper"
 describe Nucleus do
   before do
     Nucleus.configure do |config|
+      adapter = Minitest::Mock.new
+
+      %i[not_found bad_request unauthorized unprocessable server_error tap].each do |adapter_method|
+        adapter.expect(adapter_method, nil)
+      end
+
       config.responder = {
         exceptions: {
           bad_request: NotImplementedError,
@@ -10,7 +16,8 @@ describe Nucleus do
           unprocessable: RuntimeError,
           unauthorized: SecurityError,
           server_error: SignalException
-        }
+        },
+        adapter: adapter
       }
     end
   end
@@ -18,9 +25,11 @@ describe Nucleus do
   describe "#configure" do
     describe "responder" do
       it "initializes with expected values" do
-        exceptions = Nucleus.configuration&.responder&.exceptions
+        responder = Nucleus.configuration.responder
+        exceptions = responder.exceptions
 
         refute_nil(exceptions)
+        assert_respond_to(responder, :adapter)
         assert_equal([NotImplementedError], exceptions.bad_request)
         assert_equal([LoadError], exceptions.not_found)
         assert_equal([RuntimeError], exceptions.unprocessable)
