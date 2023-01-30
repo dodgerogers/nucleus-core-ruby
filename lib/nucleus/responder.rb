@@ -1,36 +1,18 @@
-# rubocop:disable Metrics/ClassLength
+require "set"
+
 module Nucleus
-  class Responder
-    # TODO: Framework adaptation mixin
-    # module Mixins
-    #   def included(base)
-    #     # base.extend ClassMethods
-    #     base.class_eval do
-    #       rescue_from Exception do |exception|
-    #         Nucleus::Responder.handle_exception(exception)
-    #       end
-    #
-    #       def handle_response(&block)
-    #         Nucleus::Responder.handle_response(&block, request_format)
-    #       end
-    #     end
-    #   end
+  module Responder
+    # TODO: Framework specific mixin
+    # rescue_from Exception do |exception|
+    #   Nucleus::Responder.handle_exception(exception)
     # end
-
-    def self.handle_response(&block)
-      responder = new
-
-      responder.set_request_format
-
-      responder.handle_response(&block)
-    end
 
     def set_request_format(format="json")
       @format = format.to_sym
     end
 
     def request_format
-      @format.to_s
+      @format ||= set_request_format
     end
 
     # rubocop:disable Lint/RescueException:
@@ -67,7 +49,7 @@ module Nucleus
     def render_entity(entity)
       return handle_context(entity) if entity.is_a?(Nucleus::Operation::Context)
       return render_view(entity) if subclass_of(entity, Nucleus::View)
-      return render_response(entity) if subclass_of(entity, Nucleus::Response)
+      return render_response(entity) if subclass_of(entity, Nucleus::ResponseAdapter)
     end
 
     def handle_context(context)
@@ -160,8 +142,7 @@ module Nucleus
     # rubocop:enable Lint/DuplicateBranch
 
     def subclass_of(entity, *classes)
-      entity.class.ancestors.to_set.intersect?(classes.to_set)
+      Set[*entity.class.ancestors].intersect?(classes.to_set)
     end
   end
 end
-# rubocop:enable Metrics/ClassLength

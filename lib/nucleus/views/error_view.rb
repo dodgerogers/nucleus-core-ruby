@@ -1,3 +1,5 @@
+require "nucleus/response_adapter"
+
 class Nucleus::ErrorView < Nucleus::View
   def initialize(attrs={})
     super(
