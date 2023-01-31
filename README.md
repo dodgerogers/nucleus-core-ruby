@@ -6,7 +6,7 @@
 
 Nucleus is a framework to express and orchestrate business logic in a way that is agnostic to the framework. 
 
-This gem is still very much in alpha, and a `nucleus-rails` will be created to handle the adaptation of Nucleus::View objects to the rails rendering methods.
+This gem is still very much in alpha, and a `nucleus-rails` gem will be created to handle the adaptation of Nucleus::View objects to the rails rendering methods.
 
 Here are all the classes Nucleus exposes. They have preordained responsibilities, can be composed together, and tested simply.
 
