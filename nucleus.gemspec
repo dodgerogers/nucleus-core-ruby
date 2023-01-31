@@ -6,13 +6,13 @@ Gem::Specification.new do |spec|
   spec.authors = ["dodgerogers"]
   spec.email = ["dodgerogers@hotmail.com"]
   spec.summary = "A Ruby business logic framework"
-  spec.homepage = "https://github.com/dodgerogers/nucleus"
+  spec.homepage = "https://github.com/dodgerogers/nucleus-framework"
   spec.license = "MIT"
   spec.required_ruby_version = ">= 2.6"
   spec.metadata = {
-    "bug_tracker_uri" => "https://github.com/dodgerogers/nucleus/issues",
-    "changelog_uri" => "https://github.com/dodgerogers/nucleus/releases",
-    "source_code_uri" => "https://github.com/dodgerogers/nucleus",
+    "bug_tracker_uri" => "https://github.com/dodgerogers/nucleus-framework/issues",
+    "changelog_uri" => "https://github.com/dodgerogers/nucleus-framework/releases",
+    "source_code_uri" => "https://github.com/dodgerogers/nucleus-framework",
     "homepage_uri" => spec.homepage,
     "rubygems_mfa_required" => "true"
   }
