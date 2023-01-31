@@ -19,32 +19,21 @@ module Nucleus
   autoload :Responder, "nucleus/responder"
 
   class Configuration
+    attr_reader :exceptions_map, :response_adapter
     attr_accessor :logger
-    attr_reader :responder
-
-    EXCEPTIONS = %i[not_found bad_request unauthorized unprocessable server_error].freeze
-    ADAPTER_METHODS = %i[render_json render_xml render_text render_pdf render_csv render_nothing].freeze
 
     def initialize
-      @responder = objectify(adapter: nil, exceptions: objectify(exception_defaults))
       @logger = nil
+      @response_adapter = nil
+      @exceptions_map = nil
     end
 
-    def responder=(args={})
-      exceptions = objectify(
-        args
-          .fetch(:exceptions, exception_defaults)
-          .slice(*exception_defaults.keys)
-          .reduce({}) do |acc, (key, value)|
-            acc.merge(key => Array.wrap(value))
-          end
-      )
+    def exceptions_map=(args={})
+      @exceptions_map = format_exceptions(args)
+    end
 
-      adapter = args[:adapter].tap { |a| verify_adapter!(a) }
-      @responder = objectify(
-        exceptions: exceptions,
-        adapter: adapter
-      )
+    def response_adapter=(adapter)
+      @response_adapter = format_adapter(adapter)
     end
 
     private
@@ -53,9 +42,29 @@ module Nucleus
       OpenStruct.new(hash)
     end
 
-    def exception_defaults
-      EXCEPTIONS.reduce({}) { |acc, ex| acc.merge(ex => nil) }
+    ERROR_STATUSES = %i[not_found bad_request unauthorized unprocessable server_error].freeze
+
+    def format_exceptions(exceptions={})
+      exception_defaults = ERROR_STATUSES.reduce({}) { |acc, ex| acc.merge(ex => nil) }
+
+      objectify(
+        (exceptions || exception_defaults)
+            .slice(*exception_defaults.keys)
+            .reduce({}) do |acc, (key, value)|
+              acc.merge(key => Array.wrap(value))
+            end
+      )
     end
+
+    def format_adapter(adapter={})
+      adapter.tap do |a|
+        verify_adapter!(a)
+      end
+    end
+
+    ADAPTER_METHODS = %i[
+      render_json render_xml render_text render_pdf render_csv render_nothing set_header
+    ].freeze
 
     def verify_adapter!(adapter)
       current_adapter_methods = Set[*(adapter.methods - Object.methods)]

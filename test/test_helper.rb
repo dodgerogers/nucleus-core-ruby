@@ -10,3 +10,7 @@ class Minitest::Spec
     self.class
   end
 end
+
+NucleusTestConfiguration.init!
+
+Minitest.after_run { Nucleus.reset }

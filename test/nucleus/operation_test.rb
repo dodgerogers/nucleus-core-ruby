@@ -27,7 +27,7 @@ describe Nucleus::Operation do
 
         refute_predicate(context, :success?)
         assert_equal("total has reached max", context.message)
-        assert_equal(StandardError, context.exception.class)
+        assert_equal(Nucleus::Unprocessable, context.exception.class)
       end
     end
   end

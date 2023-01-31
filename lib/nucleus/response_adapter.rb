@@ -60,7 +60,7 @@ class Nucleus::CsvResponse < Nucleus::ResponseAdapter
   def initialize(attrs={})
     attrs = attrs.merge(
       disposition: "attachment",
-      filename: attributes.fetch(:filename) { "response.csv" },
+      filename: attrs.fetch(:filename) { "response.csv" },
       type: "text/csv; charset=UTF-8;"
     )
 
@@ -72,7 +72,7 @@ class Nucleus::PdfResponse < Nucleus::ResponseAdapter
   def initialize(attrs={})
     attrs = attrs.merge(
       disposition: "inline",
-      filename: attributes.fetch(:filename) { "response.pdf" },
+      filename: attrs.fetch(:filename) { "response.pdf" },
       type: "application/pdf"
     )
 
