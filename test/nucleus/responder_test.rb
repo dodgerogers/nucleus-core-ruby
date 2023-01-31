@@ -14,7 +14,7 @@ end
 describe Nucleus::Responder do
   describe "success" do
     it "returns expected response entity" do
-      response = TestController.new.index
+      response = TestController.index
 
       assert(response.is_a?(Nucleus::JsonResponse))
     end
@@ -22,8 +22,7 @@ describe Nucleus::Responder do
     format_to_view_map.each do |request_format, view_class|
       describe "with #{request_format} request" do
         subject do
-          controller = TestController.new(request_format: request_format)
-          controller.index
+          TestController.index(request_format: request_format)
         end
 
         it "returns expected response entity" do
@@ -39,8 +38,7 @@ describe Nucleus::Responder do
     describe "when an exception is raised" do
       subject do
         # {} will force a NoMethodError when we try and perform addition
-        controller = TestController.new(params: { total: {} })
-        controller.index
+        TestController.index(params: { total: {} })
       end
 
       it "returns expected response entity" do
@@ -57,8 +55,7 @@ describe Nucleus::Responder do
     describe "when the operation fails" do
       subject do
         # A total > 20 forces a context error implemented inside SimpleWorkflow
-        controller = TestController.new(params: { total: 21 })
-        controller.show
+        TestController.show(params: { total: 21 })
       end
 
       it "returns expected response entity" do

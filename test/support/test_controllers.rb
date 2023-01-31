@@ -32,9 +32,9 @@ class TestController
 
   attr_accessor :request, :params
 
-  def initialize(request_format: :json, params: { total: 5 })
-    @format = request_format
-    @params = params
+  def initialize(attrs={})
+    @request_format = attrs.fetch(:request_format, :json)
+    @params = attrs.fetch(:params, total: 5)
   end
 
   def index
@@ -49,6 +49,10 @@ class TestController
     end
   end
 
+  def self.index(params={})
+    new(params).index
+  end
+
   def show
     handle_response do
       policy.enforce!(:can_read?)
@@ -59,6 +63,10 @@ class TestController
 
       return context
     end
+  end
+
+  def self.show(params={})
+    new(params).show
   end
 
   private
