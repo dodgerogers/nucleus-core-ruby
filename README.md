@@ -4,7 +4,7 @@
 [![Circle](https://circleci.com/gh/dodgerogers/nucleus-framework/tree/main.svg?style=shield)](https://app.circleci.com/pipelines/github/dodgerogers/nucleus?branch=main)
 [![Code Climate](https://codeclimate.com/github/dodgerogers/nucleus-framework/badges/gpa.svg)](https://codeclimate.com/github/dodgerogers/nucleus)
 
-Nucleus is an framework to express and orchestrate business logic agnostic to the framework.
+Nucleus is a framework to express and orchestrate business logic in a way that is agnostic to the framework.
 
 Here are all the classes Nucleus exposes. They have preordained responsibilities, can be composed together, and tested simply.
 
@@ -49,8 +49,8 @@ class HandleCheckoutWorkflow < Nucleus::Workflow
     start_node(continue: :calculate_amount)
     register_node(
       state: :calculate_amount,
-      operation: FetchShoppingCart
-      determine_signal: ->(context) { context.cart.total > 10 ? :discount : :pay }
+      operation: FetchShoppingCart,
+      determine_signal: ->(context) { context.cart.total > 10 ? :discount : :pay },
       signals: { discount: :apply_discount, pay: :take_payment }
     )
     register_node(
