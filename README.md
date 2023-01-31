@@ -1,18 +1,18 @@
 # Nucleus
 
 [![Gem Version](https://badge.fury.io/rb/nucleus-framework.svg)](https://rubygems.org/gems/nucleus-framework)
-[![Circle](https://circleci.com/gh/dodgerogers/nucleus-framework/tree/main.svg?style=shield)](https://app.circleci.com/pipelines/github/dodgerogers/nucleus?branch=main)
-[![Code Climate](https://codeclimate.com/github/dodgerogers/nucleus-framework/badges/gpa.svg)](https://codeclimate.com/github/dodgerogers/nucleus)
+[![Circle](https://circleci.com/gh/dodgerogers/nucleus-framework/tree/main.svg?style=shield)](https://app.circleci.com/pipelines/github/dodgerogers/nucleus-framework?branch=main)
+[![Code Climate](https://codeclimate.com/github/dodgerogers/nucleus-framework/badges/gpa.svg)](https://codeclimate.com/github/dodgerogers/nucleus-framework)
 
-Nucleus is a framework to express and orchestrate business logic in a way that is agnostic to the framework. 
+Nucleus is a framework to express and orchestrate business logic in a way that is agnostic to the framework.
 
 This gem is still very much in alpha, and a `nucleus-rails` gem will be created to handle the adaptation of Nucleus::View objects to the rails rendering methods.
 
-Here are all the classes Nucleus exposes. They have preordained responsibilities, can be composed together, and tested simply.
+Here are the classes Nucleus exposes, they have preordained responsibilities, can be composed together, and tested simply in isolation from the framework.
 
-- Policy (Authorization) - Can this user perform `X`?
-- Operation (Services) - Execute a single unit of business logic. or side effect (ScheduleAppointment, CancelOrder, UpdateAddress).
-- Workflow (Service Orchestration) - Excecute multiple units of work, and side effects (ApproveLoan, TakePayment, CancelFulfillments).
+- Policy (Authorization) - Can this user perform this process?
+- Operation (Services) - Executes a single unit of business logic, or side effect (ScheduleAppointment, CancelOrder, UpdateAddress).
+- Workflow (Service Orchestration) - Excecutes multiple units of work, and side effects (ApproveLoan, TakePayment, CancelFulfillments).
 - View (Presentation) - A presentation object which can render to multiple formats.
 - Repository (Data access) - Interacts with data sources to hide the implementation details to callers, and return Aggregates. Data sources could be an API, ActiveRecord, SQL, a local file, etc.
 - Aggregate (Domain/business Object) - Maps data from the data source to an object the aplication defines, known as an anti corruption layer.
