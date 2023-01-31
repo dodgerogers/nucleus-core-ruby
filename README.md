@@ -4,7 +4,9 @@
 [![Circle](https://circleci.com/gh/dodgerogers/nucleus-framework/tree/main.svg?style=shield)](https://app.circleci.com/pipelines/github/dodgerogers/nucleus?branch=main)
 [![Code Climate](https://codeclimate.com/github/dodgerogers/nucleus-framework/badges/gpa.svg)](https://codeclimate.com/github/dodgerogers/nucleus)
 
-Nucleus is a framework to express and orchestrate business logic in a way that is agnostic to the framework.
+Nucleus is a framework to express and orchestrate business logic in a way that is agnostic to the framework. 
+
+This gem is still very much in alpha, and a `nucleus-rails` will be created to handle the adaptation of Nucleus::View objects to the rails rendering methods.
 
 Here are all the classes Nucleus exposes. They have preordained responsibilities, can be composed together, and tested simply.
 
@@ -18,7 +20,7 @@ Here are all the classes Nucleus exposes. They have preordained responsibilities
 Below is an example using Nucleus with Rails:
 
 ```ruby
-# controllers/calculate_amount.rb
+# controllers/payments_controller.rb
 class PaymentsController < ApplicationController
   def create
     Nucleus::Responder.handle_response do
