@@ -1,5 +1,3 @@
-require "nucleus_core/exceptions"
-
 module NucleusCore
   class Policy
     attr_reader :user, :record
