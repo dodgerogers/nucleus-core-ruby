@@ -1,7 +1,6 @@
 require "ostruct"
 require "json"
 require "set"
-require "nucleus_core/exceptions"
 
 Dir[File.join(__dir__, "nucleus_core", "extensions", "*.rb")].sort.each { |file| require file }
 
@@ -17,6 +16,12 @@ module NucleusCore
   autoload :Operation, "nucleus_core/operation"
   autoload :Workflow, "nucleus_core/workflow"
   autoload :Responder, "nucleus_core/responder"
+
+  class BaseException < StandardError; end
+  class NotAuthorized < BaseException; end
+  class NotFound < BaseException; end
+  class Unprocessable < BaseException; end
+  class BadRequest < BaseException; end
 
   class Configuration
     attr_reader :exceptions_map, :response_adapter
