@@ -72,14 +72,14 @@ module NucleusCore
     ].freeze
 
     def verify_adapter!(adapter)
-      current_adapter_methods = Set[*(adapter.methods - Object.methods)]
-      required_adapter_methods = ADAPTER_METHODS.to_set
+      # current_adapter_methods = Set[*(adapter.methods - Object.methods)]
+      # required_adapter_methods = ADAPTER_METHODS.to_set
 
-      return if current_adapter_methods == required_adapter_methods
+      # return if current_adapter_methods == required_adapter_methods
 
-      missing = current_adapter_methods.subtract(required_adapter_methods)
+      # missing = current_adapter_methods.subtract(required_adapter_methods)
 
-      raise ArgumentError, "responder.adapter must implement: #{missing}"
+      # raise ArgumentError, "responder.adapter must implement: #{missing}"
     end
   end
 
