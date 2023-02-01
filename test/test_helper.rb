@@ -1,6 +1,6 @@
 $LOAD_PATH.unshift File.expand_path("../lib", __dir__)
 
-require "nucleus"
+require "nucleus_core"
 require "minitest/autorun"
 
 Dir[File.expand_path("support/**/*.rb", __dir__)].sort.each { |rb| require(rb) }
@@ -11,6 +11,6 @@ class Minitest::Spec
   end
 end
 
-NucleusTestConfiguration.init!
+NucleusCoreTestConfiguration.init!
 
-Minitest.after_run { Nucleus.reset }
+Minitest.after_run { NucleusCore.reset }

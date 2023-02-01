@@ -1,6 +1,6 @@
-require "nucleus/response_adapter"
+require "nucleus_core/response_adapter"
 
-class Nucleus::ErrorView < Nucleus::View
+class NucleusCore::ErrorView < NucleusCore::View
   def initialize(attrs={})
     super(
       {}.tap do |a|
@@ -12,6 +12,6 @@ class Nucleus::ErrorView < Nucleus::View
   end
 
   def json_response
-    Nucleus::JsonResponse.new(content: to_h, status: status)
+    NucleusCore::JsonResponse.new(content: to_h, status: status)
   end
 end

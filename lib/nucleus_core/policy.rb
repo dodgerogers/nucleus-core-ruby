@@ -1,6 +1,6 @@
-require "nucleus/exceptions"
+require "nucleus_core/exceptions"
 
-module Nucleus
+module NucleusCore
   class Policy
     attr_reader :user, :record
 
@@ -16,7 +16,7 @@ module Nucleus
         name = Array.wrap(policy_method_and_args).first
         message = "You do not have access to: #{name}"
 
-        raise Nucleus::NotAuthorized, message
+        raise NucleusCore::NotAuthorized, message
       end
     end
   end

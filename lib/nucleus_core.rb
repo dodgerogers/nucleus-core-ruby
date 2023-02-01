@@ -1,22 +1,22 @@
 require "ostruct"
-require "nucleus/exceptions"
+require "nucleus_core/exceptions"
 require "json"
 require "set"
 
-Dir[File.join(__dir__, "nucleus", "extensions", "*.rb")].sort.each { |file| require file }
+Dir[File.join(__dir__, "nucleus_core", "extensions", "*.rb")].sort.each { |file| require file }
 
-module Nucleus
-  autoload :CLI, "nucleus/cli"
-  autoload :VERSION, "nucleus/version"
-  autoload :BasicObject, "nucleus/basic_object"
-  autoload :View, "nucleus/views/view"
-  autoload :ErrorView, "nucleus/views/error_view"
-  autoload :ResponseAdapter, "nucleus/response_adapter"
-  autoload :Aggregate, "nucleus/aggregate"
-  autoload :Policy, "nucleus/policy"
-  autoload :Operation, "nucleus/operation"
-  autoload :Workflow, "nucleus/workflow"
-  autoload :Responder, "nucleus/responder"
+module NucleusCore
+  autoload :CLI, "nucleus_core/cli"
+  autoload :VERSION, "nucleus_core/version"
+  autoload :BasicObject, "nucleus_core/basic_object"
+  autoload :View, "nucleus_core/views/view"
+  autoload :ErrorView, "nucleus_core/views/error_view"
+  autoload :ResponseAdapter, "nucleus_core/response_adapter"
+  autoload :Aggregate, "nucleus_core/aggregate"
+  autoload :Policy, "nucleus_core/policy"
+  autoload :Operation, "nucleus_core/operation"
+  autoload :Workflow, "nucleus_core/workflow"
+  autoload :Responder, "nucleus_core/responder"
 
   class Configuration
     attr_reader :exceptions_map, :response_adapter

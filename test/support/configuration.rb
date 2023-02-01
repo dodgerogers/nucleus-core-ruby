@@ -1,6 +1,6 @@
-class NucleusTestConfiguration
+class NucleusCoreTestConfiguration
   def self.init!
-    Nucleus.configure do |config|
+    NucleusCore.configure do |config|
       config.response_adapter = TestAdapter
       config.logger = nil
       config.exceptions_map = {

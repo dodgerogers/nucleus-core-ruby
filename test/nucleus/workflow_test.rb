@@ -1,6 +1,6 @@
 require "test_helper"
 
-describe Nucleus::Workflow do
+describe NucleusCore::Workflow do
   describe "#call" do
     before do
       @total = 0
@@ -22,7 +22,7 @@ describe Nucleus::Workflow do
 
     describe "with a valid signal" do
       before do
-        @process = Nucleus::Workflow::Process.new(:started)
+        @process = NucleusCore::Workflow::Process.new(:started)
         @signal = :stop
       end
 
@@ -86,7 +86,7 @@ describe Nucleus::Workflow do
 
         refute_predicate(context, :success?)
         assert_equal("Unhandled exception FailingWorkflow: not found", context.message)
-        assert(context.exception.is_a?(Nucleus::NotFound))
+        assert(context.exception.is_a?(NucleusCore::NotFound))
         assert_equal("not found", context.exception.message)
         assert_equal(:initial, process.state)
       end

@@ -1,4 +1,4 @@
-class Nucleus::ResponseAdapter < Nucleus::BasicObject
+class NucleusCore::ResponseAdapter < NucleusCore::BasicObject
   def initialize(attrs={})
     attributes = defaults
       .merge(attrs)
@@ -17,14 +17,14 @@ class Nucleus::ResponseAdapter < Nucleus::BasicObject
   end
 
   def status_code(status=nil)
-    status = Nucleus::Rack::Utils.status_code(status)
+    status = NucleusCore::Rack::Utils.status_code(status)
     default_status = 200
 
     status.zero? ? default_status : status
   end
 end
 
-class Nucleus::NoResponse < Nucleus::ResponseAdapter
+class NucleusCore::NoResponse < NucleusCore::ResponseAdapter
   def initialize(attrs={})
     attrs = attrs.merge(content: nil, type: "text/html; charset=utf-8")
 
@@ -32,7 +32,7 @@ class Nucleus::NoResponse < Nucleus::ResponseAdapter
   end
 end
 
-class Nucleus::TextResponse < Nucleus::ResponseAdapter
+class NucleusCore::TextResponse < NucleusCore::ResponseAdapter
   def initialize(attrs={})
     attrs = attrs.merge(type: "application/text")
 
@@ -40,7 +40,7 @@ class Nucleus::TextResponse < Nucleus::ResponseAdapter
   end
 end
 
-class Nucleus::JsonResponse < Nucleus::ResponseAdapter
+class NucleusCore::JsonResponse < NucleusCore::ResponseAdapter
   def initialize(attrs={})
     attrs = attrs.merge(type: "application/json")
 
@@ -48,7 +48,7 @@ class Nucleus::JsonResponse < Nucleus::ResponseAdapter
   end
 end
 
-class Nucleus::XmlResponse < Nucleus::ResponseAdapter
+class NucleusCore::XmlResponse < NucleusCore::ResponseAdapter
   def initialize(attrs={})
     attrs = attrs.merge(type: "application/xml")
 
@@ -56,7 +56,7 @@ class Nucleus::XmlResponse < Nucleus::ResponseAdapter
   end
 end
 
-class Nucleus::CsvResponse < Nucleus::ResponseAdapter
+class NucleusCore::CsvResponse < NucleusCore::ResponseAdapter
   def initialize(attrs={})
     attrs = attrs.merge(
       disposition: "attachment",
@@ -68,7 +68,7 @@ class Nucleus::CsvResponse < Nucleus::ResponseAdapter
   end
 end
 
-class Nucleus::PdfResponse < Nucleus::ResponseAdapter
+class NucleusCore::PdfResponse < NucleusCore::ResponseAdapter
   def initialize(attrs={})
     attrs = attrs.merge(
       disposition: "inline",

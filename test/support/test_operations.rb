@@ -1,10 +1,8 @@
-require "nucleus"
-
-class TestOperation < Nucleus::Operation
+class TestOperation < NucleusCore::Operation
   def call
     if context.total >= 20
       message = "total has reached max"
-      context.fail!(message, exception: Nucleus::Unprocessable.new(message))
+      context.fail!(message, exception: NucleusCore::Unprocessable.new(message))
     end
 
     context.total += 1

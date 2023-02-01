@@ -1,6 +1,4 @@
-require "nucleus"
-
-class SimpleWorkflow < Nucleus::Workflow
+class SimpleWorkflow < NucleusCore::Workflow
   def define
     start_node(continue: :started)
     register_node(
@@ -24,7 +22,7 @@ class SimpleWorkflow < Nucleus::Workflow
   end
 end
 
-class FailingWorkflow < Nucleus::Workflow
+class FailingWorkflow < NucleusCore::Workflow
   def define
     start_node(continue: :failed, raise_exception: :unhandled_exception)
     register_node(
@@ -34,7 +32,7 @@ class FailingWorkflow < Nucleus::Workflow
     )
     register_node(
       state: :unhandled_exception,
-      operation: ->(_context) { raise Nucleus::NotFound, "not found" },
+      operation: ->(_context) { raise NucleusCore::NotFound, "not found" },
       determine_signal: ->(_) { :wait }
     )
     register_node(
@@ -44,7 +42,7 @@ class FailingWorkflow < Nucleus::Workflow
   end
 end
 
-class RollbackWorkflow < Nucleus::Workflow
+class RollbackWorkflow < NucleusCore::Workflow
   def define
     start_node(continue: :started)
     register_node(

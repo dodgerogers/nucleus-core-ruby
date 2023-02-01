@@ -1,1 +1,1 @@
-class TestObject < Nucleus::BasicObject; end
+class TestObject < NucleusCore::BasicObject; end

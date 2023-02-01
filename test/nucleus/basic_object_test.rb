@@ -1,12 +1,12 @@
 require "test_helper"
 
-describe Nucleus::BasicObject do
+describe NucleusCore::BasicObject do
   describe "#initialize" do
     before do
       @args = { name: "Bob", number: 123 }
     end
 
-    subject { Nucleus::BasicObject.new(@args) }
+    subject { NucleusCore::BasicObject.new(@args) }
 
     it "sets expected methods, and instance variables" do
       to = subject

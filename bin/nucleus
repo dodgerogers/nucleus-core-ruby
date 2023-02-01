@@ -26,4 +26,4 @@ end
 require "rubygems"
 require "bundler/setup"
 
-load Gem.bin_path("nucleus-framework", "nucleus")
+load Gem.bin_path("nucleus-core", "nucleus")

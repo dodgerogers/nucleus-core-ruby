@@ -1,7 +1,7 @@
 require "test_helper"
 
-describe Nucleus do
-  subject { Nucleus.configuration }
+describe NucleusCore do
+  subject { NucleusCore.configuration }
 
   describe "#configure" do
     describe "exceptions_map" do
@@ -22,7 +22,7 @@ describe Nucleus do
 
         refute_nil(adapter)
 
-        Nucleus::Configuration::ADAPTER_METHODS.each do |adapter_method|
+        NucleusCore::Configuration::ADAPTER_METHODS.each do |adapter_method|
           assert_respond_to(adapter, adapter_method)
         end
       end
@@ -41,9 +41,9 @@ describe Nucleus do
   #     refute_nil(exceptions.unauthorized)
   #     refute_nil(exceptions.server_error)
 
-  #     Nucleus.reset
+  #     NucleusCore.reset
 
-  #     exceptions = Nucleus.configuration.exceptions_map
+  #     exceptions = NucleusCore.configuration.exceptions_map
 
   #     assert_nil(exceptions.bad_request)
   #     assert_nil(exceptions.not_found)

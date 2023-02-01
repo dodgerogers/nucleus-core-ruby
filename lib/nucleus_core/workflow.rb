@@ -1,5 +1,5 @@
 # rubocop:disable Metrics/PerceivedComplexity, Metrics/CyclomaticComplexity, Metrics/ClassLength, Metrics/AbcSize:
-module Nucleus
+module NucleusCore
   class Workflow
     class Node
       attr_reader :state, :operation, :rollback, :signals, :prepare_context, :determine_signal
@@ -88,7 +88,7 @@ module Nucleus
       visited.reverse_each do |state|
         node = workflow.nodes[state]
 
-        next node.operation.rollback(context) if node.operation.is_a?(Nucleus::Operation)
+        next node.operation.rollback(context) if node.operation.is_a?(NucleusCore::Operation)
         next node.rollback.call(context) if node.rollback.is_a?(Proc)
       end
     end
@@ -122,7 +122,7 @@ module Nucleus
       end
 
       context
-    rescue Nucleus::Operation::Context::Error
+    rescue NucleusCore::Operation::Context::Error
       context
     rescue StandardError => e
       fail_context(@context, e)
@@ -131,9 +131,9 @@ module Nucleus
     private
 
     def build_context(context={})
-      return context if context.is_a?(Nucleus::Operation::Context)
+      return context if context.is_a?(NucleusCore::Operation::Context)
 
-      Nucleus::Operation::Context.new(context)
+      NucleusCore::Operation::Context.new(context)
     end
 
     def execute_node(node, context)
@@ -172,7 +172,7 @@ module Nucleus
       message = "Unhandled exception #{self.class}: #{exception.message}"
 
       context.fail!(message, exception: exception)
-    rescue Nucleus::Operation::Context::Error
+    rescue NucleusCore::Operation::Context::Error
       context
     end
   end
