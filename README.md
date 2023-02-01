@@ -1,14 +1,14 @@
-# Nucleus
+# NucleusCore
 
-[![Gem Version](https://badge.fury.io/rb/nucleus-framework.svg)](https://rubygems.org/gems/nucleus-framework)
-[![Circle](https://circleci.com/gh/dodgerogers/nucleus-framework/tree/main.svg?style=shield)](https://app.circleci.com/pipelines/github/dodgerogers/nucleus-framework?branch=main)
-[![Code Climate](https://codeclimate.com/github/dodgerogers/nucleus-framework/badges/gpa.svg)](https://codeclimate.com/github/dodgerogers/nucleus-framework)
+[![Gem Version](https://badge.fury.io/rb/nucleus-core.svg)](https://rubygems.org/gems/nucleus-core)
+[![Circle](https://circleci.com/gh/dodgerogers/nucleus-core/tree/main.svg?style=shield)](https://app.circleci.com/pipelines/github/dodgerogers/nucleus-core?branch=main)
+[![Code Climate](https://codeclimate.com/github/dodgerogers/nucleus-core/badges/gpa.svg)](https://codeclimate.com/github/dodgerogers/nucleus-core)
 
-Nucleus is a framework to express and orchestrate business logic in a way that is agnostic to the framework.
+NucleusCore Core is a framework to express and orchestrate business logic in a way that is agnostic to the framework.
 
-## This gem is still very much in development. A `nucleus-rails` gem will handle the adaptation of Nucleus::View objects to the rails rendering methods.
+## This gem is still very much in development. A `nucleus-rails` gem will handle the adaptation of NucleusCore::View objects to the rails rendering methods.
 
-Here are the classes Nucleus exposes, they have preordained responsibilities, can be composed together, and tested simply in isolation from the framework.
+Here are the classes NucleusCore exposes, they have preordained responsibilities, can be composed together, and tested simply in isolation from the framework.
 
 - Policy (Authorization) - Can this user perform this process?
 - Operation (Services) - Executes a single unit of business logic, or side effect (ScheduleAppointment, CancelOrder, UpdateAddress).
@@ -17,13 +17,13 @@ Here are the classes Nucleus exposes, they have preordained responsibilities, ca
 - Repository (Data access) - Interacts with data sources to hide the implementation details to callers, and return Aggregates. Data sources could be an API, ActiveRecord, SQL, a local file, etc.
 - Aggregate (Domain/business Object) - Maps data from the data source to an object the aplication defines, known as an anti corruption layer.
 
-Below is an example using Nucleus with Rails:
+Below is an example using NucleusCore Core with Rails:
 
 ```ruby
 # controllers/payments_controller.rb
 class PaymentsController < ApplicationController
   def create
-    Nucleus::Responder.handle_response do
+    NucleusCore::Responder.handle_response do
       policy.enforce!(:can_write?)
 
       context, _process = HandleCheckoutWorkflow.call(invoice_params)
@@ -46,7 +46,7 @@ class PaymentsController < ApplicationController
 end
 
 # workflows/handle_checkout_workflow.rb
-class HandleCheckoutWorkflow < Nucleus::Workflow
+class HandleCheckoutWorkflow < NucleusCore::Workflow
   def define
     start_node(continue: :calculate_amount)
     register_node(
@@ -73,24 +73,24 @@ class HandleCheckoutWorkflow < Nucleus::Workflow
 end
 
 # app/operations/fetch_shopping_cart.rb
-class FetchShoppingCart < Nucleus::Operation
+class FetchShoppingCart < NucleusCore::Operation
   def call
     cart = ShoppingCartRepository.find(context.cart_id)
 
     context.cart = cart
-  rescue Nucleus::NotFound => e
+  rescue NucleusCore::NotFound => e
     context.fail!(e.message, exception: e)
   end
 end
 
 # app/repositories/shopping_cart_repository.rb
-class ShoppingCartRepository < Nucleus::Repository
+class ShoppingCartRepository < NucleusCore::Repository
   def self.find(cart_id)
     cart = ShoppingCart.find(cart_id)
 
     return ShoppingCart::Aggregate.new(cart)
   rescue ActiveRecord::RecordNotFound => e
-    raise Nucleus::NotFound, e.message
+    raise NucleusCore::NotFound, e.message
   end
 
   def self.discount(cart_id, percentage)
@@ -99,7 +99,7 @@ class ShoppingCartRepository < Nucleus::Repository
     cart.update!(total: cart.total * percentage, paid: true)
 
     return ShoppingCart::Aggregate.new(cart)
-  rescue Nucleus::NotFound => e
+  rescue NucleusCore::NotFound => e
     raise e
   end
 end
@@ -109,25 +109,25 @@ class ShoppingCart < ActiveRecord::Base
 end
 
 # app/aggregates/shopping_cart.rb
-class ShoppingCart::Aggregate < Nucleus::Aggregate
+class ShoppingCart::Aggregate < NucleusCore::Aggregate
   def initialize(cart)
     super(id: cart.id, total: cart.total, paid: cart.paid, created_at: cart.created_at)
   end
 end
 
 # app/operations/apply_discount_to_shopping_cart.rb
-class ApplyDiscountToShoppingCart < Nucleus::Operation
+class ApplyDiscountToShoppingCart < NucleusCore::Operation
   def call
     cart = ShoppingCartRepository.discount(context.cart_id, 0.75)
 
     context.cart
-  rescue Nucleus::NotFound => e
+  rescue NucleusCore::NotFound => e
     context.fail!(e.message, exception: e)
   end
 end
 
 # app/views/payments_view.rb
-class Nucleus::PaymentView < Nucleus::View
+class NucleusCore::PaymentView < NucleusCore::View
   def initialize(cart)
     super(total: "$#{cart.total}", paid: cart.paid, created_at: cart.created_at)
   end
@@ -142,13 +142,13 @@ class Nucleus::PaymentView < Nucleus::View
       }
     }
 
-    Nucleus::JsonResponse.new(content: content)
+    NucleusCore::JsonResponse.new(content: content)
   end
 
   def pdf_response
     pdf_string = generate_pdf_string(price, paid)
 
-    Nucleus::PdfResponse.new(content: pdf_string)
+    NucleusCore::PdfResponse.new(content: pdf_string)
   end
 
   private def generate_pdf_string(price, paid)
@@ -168,16 +168,16 @@ end
 ## Quick start
 
 ```
-$ gem install nucleus-framework
+$ gem install nucleus-core
 ```
 
 ```ruby
-require "nucleus-framework"
+require "nucleus-core"
 ```
 
 ## Support
 
-If you want to report a bug, or have ideas, feedback or questions about the gem, [let me know via GitHub issues](https://github.com/dodgerogers/nucleus/issues/new) and I will do my best to provide a helpful answer. Happy hacking!
+If you want to report a bug, or have ideas, feedback or questions about the gem, [let me know via GitHub issues](https://github.com/dodgerogers/nucleus_core/issues/new) and I will do my best to provide a helpful answer. Happy hacking!
 
 ## License
 

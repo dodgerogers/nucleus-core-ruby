@@ -1,34 +1,34 @@
 require "securerandom"
 require "ostruct"
 
-class SimpleView < Nucleus::View
+class SimpleView < NucleusCore::View
   def initialize(attrs={})
     super(attrs)
   end
 
   def json_response
-    Nucleus::JsonResponse.new
+    NucleusCore::JsonResponse.new
   end
 
   def xml_response
-    Nucleus::XmlResponse.new
+    NucleusCore::XmlResponse.new
   end
 
   def pdf_response
-    Nucleus::PdfResponse.new
+    NucleusCore::PdfResponse.new
   end
 
   def csv_response
-    Nucleus::CsvResponse.new
+    NucleusCore::CsvResponse.new
   end
 
   def text_response
-    Nucleus::TextResponse.new
+    NucleusCore::TextResponse.new
   end
 end
 
 class TestController
-  include Nucleus::Responder
+  include NucleusCore::Responder
 
   attr_accessor :request, :params
 

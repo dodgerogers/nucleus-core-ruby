@@ -1,7 +1,7 @@
 require "test_helper"
 require "ostruct"
 
-describe Nucleus::Policy do
+describe NucleusCore::Policy do
   before do
     @user = OpenStruct.new(id: 1)
     @record = OpenStruct.new(id: 1)
@@ -17,7 +17,7 @@ describe Nucleus::Policy do
 
     describe "when policy is NOT satisfied" do
       it "returns true" do
-        exception = assert_raises(Nucleus::NotAuthorized) { @policy.enforce!(:owner?) }
+        exception = assert_raises(NucleusCore::NotAuthorized) { @policy.enforce!(:owner?) }
         assert_equal "You do not have access to: owner?", exception.message
       end
     end

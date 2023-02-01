@@ -1,6 +1,6 @@
 require "ostruct"
 
-module Nucleus
+module NucleusCore
   class Operation
     class Context < OpenStruct
       class Error < StandardError

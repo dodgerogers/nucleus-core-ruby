@@ -1,5 +1,5 @@
 # Rack::Utils patch for status code
-module Nucleus
+module NucleusCore
   module Rack
     class Utils
       HTTP_STATUS_CODES = {

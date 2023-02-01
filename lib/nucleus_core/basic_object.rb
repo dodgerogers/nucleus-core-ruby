@@ -1,4 +1,4 @@
-module Nucleus
+module NucleusCore
   class BasicObject
     def initialize(attrs={})
       attrs.each_pair do |key, value|

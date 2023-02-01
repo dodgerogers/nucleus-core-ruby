@@ -1,7 +1,7 @@
 require "test_helper"
 
-describe Nucleus::ResponseAdapter do
-  subject { Nucleus::ResponseAdapter.new }
+describe NucleusCore::ResponseAdapter do
+  subject { NucleusCore::ResponseAdapter.new }
 
   describe "initialize" do
     it "sets expected properties" do

@@ -1,6 +1,6 @@
 require "set"
 
-module Nucleus
+module NucleusCore
   module Responder
     def set_request_format(request=nil)
       @request_format = request&.format&.to_sym || :json
@@ -25,7 +25,7 @@ module Nucleus
 
       status = exception_to_status(exception)
       attrs = { message: exception.message, status: status }
-      error = Nucleus::ErrorView.new(attrs)
+      error = NucleusCore::ErrorView.new(attrs)
 
       render_entity(error)
     end
@@ -41,9 +41,9 @@ module Nucleus
     end
 
     def render_entity(entity)
-      return handle_context(entity) if entity.is_a?(Nucleus::Operation::Context)
-      return render_response(entity) if subclass_of(entity, Nucleus::ResponseAdapter)
-      return render_view(entity) if subclass_of(entity, Nucleus::View)
+      return handle_context(entity) if entity.is_a?(NucleusCore::Operation::Context)
+      return render_response(entity) if subclass_of(entity, NucleusCore::ResponseAdapter)
+      return render_view(entity) if subclass_of(entity, NucleusCore::View)
     end
 
     def handle_context(context)
@@ -52,7 +52,7 @@ module Nucleus
 
       message = context.message
       attrs = { message: message, status: :unprocessable_entity }
-      error_view = Nucleus::ErrorView.new(attrs)
+      error_view = NucleusCore::ErrorView.new(attrs)
 
       render_view(error_view)
     end
@@ -62,7 +62,7 @@ module Nucleus
       renders_format = view.respond_to?(format_rendering)
       format_response = view.send(format_rendering) if renders_format
 
-      raise Nucleus::BadRequest, "#{request_format} is not supported" if format_response.nil?
+      raise NucleusCore::BadRequest, "#{request_format} is not supported" if format_response.nil?
 
       render_response(format_response)
     end
@@ -71,12 +71,12 @@ module Nucleus
       render_headers(entity.headers)
 
       render_method = {
-        Nucleus::JsonResponse => :render_json,
-        Nucleus::XmlResponse => :render_xml,
-        Nucleus::PdfResponse => :render_pdf,
-        Nucleus::CsvResponse => :render_csv,
-        Nucleus::TextResponse => :render_text,
-        Nucleus::NoResponse => :render_nothing
+        NucleusCore::JsonResponse => :render_json,
+        NucleusCore::XmlResponse => :render_xml,
+        NucleusCore::PdfResponse => :render_pdf,
+        NucleusCore::CsvResponse => :render_csv,
+        NucleusCore::TextResponse => :render_text,
+        NucleusCore::NoResponse => :render_nothing
       }.fetch(entity.class, nil)
 
       response_adapter&.send(render_method, entity)
@@ -95,15 +95,15 @@ module Nucleus
       config = exception_map
 
       case exception
-      when Nucleus::NotFound, *config.not_found
+      when NucleusCore::NotFound, *config.not_found
         :not_found
-      when Nucleus::BadRequest, *config.bad_request
+      when NucleusCore::BadRequest, *config.bad_request
         :bad_request
-      when Nucleus::NotAuthorized, *config.forbidden
+      when NucleusCore::NotAuthorized, *config.forbidden
         :forbidden
-      when Nucleus::Unprocessable, *config.unprocessable
+      when NucleusCore::Unprocessable, *config.unprocessable
         :unprocessable_entity
-      when Nucleus::BaseException, *config.server_error
+      when NucleusCore::BaseException, *config.server_error
         :internal_server_error
       else
         :internal_server_error
@@ -116,15 +116,15 @@ module Nucleus
     end
 
     def logger(object, log_level=:info)
-      Nucleus.configuration.logger&.send(log_level, object)
+      NucleusCore.configuration.logger&.send(log_level, object)
     end
 
     def exception_map
-      Nucleus.configuration.exceptions_map
+      NucleusCore.configuration.exceptions_map
     end
 
     def response_adapter
-      Nucleus.configuration.response_adapter
+      NucleusCore.configuration.response_adapter
     end
   end
 end

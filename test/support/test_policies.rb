@@ -1,4 +1,4 @@
-class TestPolicy < Nucleus::Policy
+class TestPolicy < NucleusCore::Policy
   def can_read?
     true
   end

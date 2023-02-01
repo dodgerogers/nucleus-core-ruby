@@ -1,6 +1,6 @@
 require "test_helper"
 
-describe Nucleus::Operation do
+describe NucleusCore::Operation do
   describe "self.call" do
     before do
       @total = 10
@@ -27,14 +27,14 @@ describe Nucleus::Operation do
 
         refute_predicate(context, :success?)
         assert_equal("total has reached max", context.message)
-        assert_equal(Nucleus::Unprocessable, context.exception.class)
+        assert_equal(NucleusCore::Unprocessable, context.exception.class)
       end
     end
   end
 
   describe "self.rollback" do
     it "reverts expected side effects" do
-      context = Nucleus::Operation::Context.new(total: 5)
+      context = NucleusCore::Operation::Context.new(total: 5)
       context = TestOperation.rollback(context)
 
       assert_equal(4, context.total)

@@ -1,18 +1,18 @@
-require_relative "lib/nucleus/version"
+require_relative "lib/nucleus_core/version"
 
 Gem::Specification.new do |spec|
-  spec.name = "nucleus-framework"
-  spec.version = Nucleus::VERSION
+  spec.name = "nucleus-core"
+  spec.version = NucleusCore::VERSION
   spec.authors = ["dodgerogers"]
   spec.email = ["dodgerogers@hotmail.com"]
   spec.summary = "A Ruby business logic framework"
-  spec.homepage = "https://github.com/dodgerogers/nucleus-framework"
+  spec.homepage = "https://github.com/dodgerogers/nucleus-core"
   spec.license = "MIT"
   spec.required_ruby_version = ">= 2.6"
   spec.metadata = {
-    "bug_tracker_uri" => "https://github.com/dodgerogers/nucleus-framework/issues",
-    "changelog_uri" => "https://github.com/dodgerogers/nucleus-framework/releases",
-    "source_code_uri" => "https://github.com/dodgerogers/nucleus-framework",
+    "bug_tracker_uri" => "https://github.com/dodgerogers/nucleus-core/issues",
+    "changelog_uri" => "https://github.com/dodgerogers/nucleus-core/releases",
+    "source_code_uri" => "https://github.com/dodgerogers/nucleus-core",
     "homepage_uri" => spec.homepage,
     "rubygems_mfa_required" => "true"
   }
