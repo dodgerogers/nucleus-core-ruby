@@ -1,6 +1,7 @@
 require "ostruct"
 require "json"
 require "set"
+require "nucleus_core/exceptions"
 
 Dir[File.join(__dir__, "nucleus_core", "extensions", "*.rb")].sort.each { |file| require file }
 
