@@ -1,7 +1,6 @@
 class NucleusCoreTestConfiguration
   def self.init!
     NucleusCore.configure do |config|
-      config.response_adapter = TestAdapter
       config.logger = nil
       config.exceptions_map = {
         bad_request: NotImplementedError,
