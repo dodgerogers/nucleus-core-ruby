@@ -2,13 +2,22 @@ require "set"
 
 module NucleusCore
   module Responder
-    def set_request_format(request=nil)
-      @request_format = request&.format&.to_sym || :json
+    attr_reader :request_format, :response_adapter
+
+    def init_responder(request_format: nil, response_adapter: nil)
+      set_request_format(request_format)
+      set_response_adapter(response_adapter)
     end
 
-    def request_format
-      @request_format ||= set_request_format
+    # rubocop:disable Naming/AccessorMethodName
+    def set_request_format(request=:json)
+      @request_format = request&.to_sym
     end
+
+    def set_response_adapter(response_adapter)
+      @response_adapter = response_adapter
+    end
+    # rubocop:enable Naming/AccessorMethodName
 
     # rubocop:disable Lint/RescueException:
     def handle_response(&block)
@@ -70,7 +79,7 @@ module NucleusCore
     def render_response(entity)
       render_headers(entity.headers)
 
-      render_method = {
+      method_name = {
         NucleusCore::JsonResponse => :render_json,
         NucleusCore::XmlResponse => :render_xml,
         NucleusCore::PdfResponse => :render_pdf,
@@ -79,7 +88,13 @@ module NucleusCore
         NucleusCore::NoResponse => :render_nothing
       }.fetch(entity.class, nil)
 
-      response_adapter&.send(render_method, entity)
+      invoke_response_adapter(method_name, entity)
+    end
+
+    def invoke_response_adapter(method_name, entity)
+      adapter = response_adapter || NucleusCore.configuration.response_adapter
+
+      adapter&.send(method_name, entity)
     end
 
     def render_headers(headers={})
@@ -121,10 +136,6 @@ module NucleusCore
 
     def exception_map
       NucleusCore.configuration.exceptions_map
-    end
-
-    def response_adapter
-      NucleusCore.configuration.response_adapter
     end
   end
 end

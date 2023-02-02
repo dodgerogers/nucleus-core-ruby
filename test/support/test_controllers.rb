@@ -27,14 +27,47 @@ class SimpleView < NucleusCore::View
   end
 end
 
+module MockResponseAdapter
+  def render_json(entity)
+    entity.class.name
+  end
+
+  def render_xml(entity)
+    entity.class.name
+  end
+
+  def render_pdf(entity)
+    entity.class.name
+  end
+
+  def render_csv(entity)
+    entity.class.name
+  end
+
+  def render_text(entity)
+    entity.class.name
+  end
+
+  def render_nothing(entity)
+    entity.class.name
+  end
+end
+
+# By default this controller, combined with Nucleus::Responder will use an injected
+# ResponseAdapter, see `test/support/configuration` for details.
+# The `MockResponseAdapter` module can be opted into by calling:
+# `init_responder(request_format: , response_adapter: )` in a test.
 class TestController
   include NucleusCore::Responder
+  include MockResponseAdapter
 
-  attr_accessor :request, :params
+  attr_accessor :params
 
+  # For example call `init_responder` in a `before_action` to pass in the instance, or
+  # use Nucleus.configuration for a static class.
   def initialize(attrs={})
-    @request_format = attrs.fetch(:request_format, :json)
     @params = attrs.fetch(:params, total: 5)
+    @request_format = attrs.fetch(:request_format, :json)
   end
 
   def index
@@ -49,10 +82,6 @@ class TestController
     end
   end
 
-  def self.index(params={})
-    new(params).index
-  end
-
   def show
     handle_response do
       policy.enforce!(:can_read?)
@@ -63,10 +92,6 @@ class TestController
 
       return context
     end
-  end
-
-  def self.show(params={})
-    new(params).show
   end
 
   private
