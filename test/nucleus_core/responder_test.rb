@@ -14,7 +14,9 @@ end
 describe NucleusCore::Responder do
   describe "success" do
     subject do
-      TestController.new.index
+      controller = TestController.new
+      controller.init_responder(response_adapter: TestAdapter, request_format: :json)
+      controller.index
     end
 
     it "returns expected response entity" do
@@ -26,7 +28,9 @@ describe NucleusCore::Responder do
     format_to_view_map.each do |request_format, view_class|
       describe "with #{request_format} request" do
         subject do
-          TestController.new(request_format: request_format).index
+          controller = TestController.new
+          controller.init_responder(response_adapter: TestAdapter, request_format: request_format)
+          controller.index
         end
 
         it "returns expected response entity" do
@@ -37,7 +41,7 @@ describe NucleusCore::Responder do
       end
     end
 
-    describe "when explicitly setting `response_adapter`" do
+    describe "when setting `response_adapter` to an instance" do
       subject do
         controller = TestController.new
         controller.init_responder(response_adapter: controller, request_format: :json)
@@ -74,7 +78,9 @@ describe NucleusCore::Responder do
     describe "when an exception is raised" do
       subject do
         # {} will force a NoMethodError when we try and perform addition
-        TestController.new(params: { total: :wut }).show
+        controller = TestController.new(params: { total: :wut })
+        controller.init_responder(response_adapter: TestAdapter, request_format: :json)
+        controller.show
       end
 
       it "returns expected response entity" do
@@ -91,7 +97,9 @@ describe NucleusCore::Responder do
     describe "when the operation fails" do
       subject do
         # A total > 20 forces a context error implemented inside SimpleWorkflow
-        TestController.new(params: { total: 21 }).show
+        controller = TestController.new(params: { total: 21 })
+        controller.init_responder(response_adapter: TestAdapter, request_format: :json)
+        controller.show
       end
 
       it "returns expected response entity" do

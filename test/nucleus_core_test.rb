@@ -8,29 +8,20 @@ describe NucleusCore do
       it "initializes with expected exception mapping" do
         exceptions = subject.exceptions_map
 
-        refute_nil(exceptions)
         # mapping set in `test/test_helper.rb`
+        refute_nil(exceptions)
         assert_equal([NotImplementedError], exceptions.bad_request)
         assert_equal([LoadError], exceptions.not_found)
         assert_equal([RuntimeError], exceptions.unprocessable)
         assert_equal([SecurityError], exceptions.unauthorized)
         assert_equal([SignalException], exceptions.server_error)
       end
-
-      it "initializes with expected response_adapter" do
-        adapter = subject.response_adapter
-
-        refute_nil(adapter)
-
-        NucleusCore::Configuration::ADAPTER_METHODS.each do |adapter_method|
-          assert_respond_to(adapter, adapter_method)
-        end
-      end
     end
   end
 
+  # TODO: uncomment
   # describe "#reset" do
-  #   after { init_configuration! }
+  #   after { NucleusCoreTestConfiguration.init! }
 
   #   it "sets the config back to the initial state" do
   #     exceptions = subject.exceptions_map

@@ -9,11 +9,11 @@ module NucleusCore
       set_response_adapter(response_adapter)
     end
 
-    # rubocop:disable Naming/AccessorMethodName
-    def set_request_format(request=:json)
-      @request_format = request&.to_sym
+    def set_request_format(request=nil)
+      @request_format = request&.to_sym || :json
     end
 
+    # rubocop:disable Naming/AccessorMethodName
     def set_response_adapter(response_adapter)
       @response_adapter = response_adapter
     end
@@ -88,13 +88,7 @@ module NucleusCore
         NucleusCore::NoResponse => :render_nothing
       }.fetch(entity.class, nil)
 
-      invoke_response_adapter(method_name, entity)
-    end
-
-    def invoke_response_adapter(method_name, entity)
-      adapter = response_adapter || NucleusCore.configuration.response_adapter
-
-      adapter&.send(method_name, entity)
+      response_adapter&.send(method_name, entity)
     end
 
     def render_headers(headers={})

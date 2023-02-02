@@ -67,7 +67,6 @@ class TestController
   # use Nucleus.configuration for a static class.
   def initialize(attrs={})
     @params = attrs.fetch(:params, total: 5)
-    @request_format = attrs.fetch(:request_format, :json)
   end
 
   def index
