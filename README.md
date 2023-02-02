@@ -22,8 +22,10 @@ Below is an example using NucleusCore Core with Rails:
 ```ruby
 # controllers/payments_controller.rb
 class PaymentsController < ApplicationController
+  include NucleusCore::Responder
+
   def create
-    NucleusCore::Responder.handle_response do
+    handle_response do
       policy.enforce!(:can_write?)
 
       context, _process = HandleCheckoutWorkflow.call(invoice_params)
@@ -104,6 +106,7 @@ class ShoppingCartRepository < NucleusCore::Repository
   end
 end
 
+# app/models/shopping_cart.rb
 class ShoppingCart < ActiveRecord::Base
   # ...
 end
