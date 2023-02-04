@@ -17,7 +17,7 @@ class NucleusCore::ResponseAdapter < NucleusCore::BasicObject
   end
 
   def status_code(status=nil)
-    status = NucleusCore::Rack::Utils.status_code(status)
+    status = Rack::Utils.status_code(status)
     default_status = 200
 
     status.zero? ? default_status : status

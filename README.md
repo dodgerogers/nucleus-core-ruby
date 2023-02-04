@@ -4,18 +4,18 @@
 [![Circle](https://circleci.com/gh/dodgerogers/nucleus-core/tree/main.svg?style=shield)](https://app.circleci.com/pipelines/github/dodgerogers/nucleus-core?branch=main)
 [![Code Climate](https://codeclimate.com/github/dodgerogers/nucleus-core/badges/gpa.svg)](https://codeclimate.com/github/dodgerogers/nucleus-core)
 
-NucleusCore Core is a framework to express and orchestrate business logic in a way that is agnostic to the framework.
+NucleusCore Core is a set of components which express and orchestrate business logic separatley to the framework.
 
-## This gem is still very much in development. A `nucleus-rails` gem will handle the adaptation of NucleusCore::View objects to the rails rendering methods.
+## This gem is still very much in development. See `nucleus-rails` for Rails usage.
 
 Here are the classes NucleusCore exposes, they have preordained responsibilities, can be composed together, and tested simply in isolation from the framework.
 
-- Policy (Authorization) - Can this user perform this process?
-- Operation (Services) - Executes a single unit of business logic, or side effect (ScheduleAppointment, CancelOrder, UpdateAddress).
-- Workflow (Service Orchestration) - Excecutes multiple units of work, and side effects (ApproveLoan, TakePayment, CancelFulfillments).
-- View (Presentation) - A presentation object which can render to multiple formats.
-- Repository (Data access) - Interacts with data sources to hide the implementation details to callers, and return Aggregates. Data sources could be an API, ActiveRecord, SQL, a local file, etc.
-- Aggregate (Domain/business Object) - Maps data from the data source to an object the aplication defines, known as an anti corruption layer.
+- **Policy (Authorization)** - Can this user perform this process?
+- **Operation (Services)** - Executes a single unit of business logic, or side effect (ScheduleAppointment, CancelOrder, UpdateAddress).
+- **Workflow (Service Orchestration)** - Excecutes multiple units of work, and side effects (ApproveLoan, TakePayment, CancelFulfillments).
+- **View (Presentation)** - A presentation object which can render to multiple formats.
+- **Repository (Data access)** - Interacts with data sources to hide the implementation details to callers, and return Aggregates. Data sources could be an API, ActiveRecord, SQL, a local file, etc.
+- **Aggregate (Domain/business Object)** - Maps data from the data source to an object the aplication defines, known as an anti corruption layer.
 
 Below is an example using NucleusCore Core with Rails:
 

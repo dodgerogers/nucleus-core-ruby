@@ -24,8 +24,8 @@ module NucleusCore
   class BadRequest < BaseException; end
 
   class Configuration
+    attr_accessor :response_adapter, :default_response_format, :logger
     attr_reader :exceptions_map
-    attr_accessor :logger
 
     RESPONSE_ADAPTER_METHODS = %i[
       render_json render_xml render_text render_pdf render_csv render_nothing set_header
@@ -34,6 +34,7 @@ module NucleusCore
     def initialize
       @logger = nil
       @exceptions_map = nil
+      @default_response_format = :json
     end
 
     def exceptions_map=(args={})
@@ -53,7 +54,7 @@ module NucleusCore
       exceptions_map = (exceptions || exception_defaults)
         .slice(*exception_defaults.keys)
         .reduce({}) do |acc, (key, value)|
-          acc.merge(key => Array.wrap(value))
+          acc.merge(key => ArrayExtensions.wrap(value))
         end
 
       objectify(exceptions_map)

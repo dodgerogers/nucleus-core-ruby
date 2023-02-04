@@ -10,12 +10,12 @@ module NucleusCore
     end
 
     def set_request_format(request=nil)
-      @request_format = request&.to_sym || :json
+      @request_format = request&.to_sym || NucleusCore.configuration.default_response_format
     end
 
     # rubocop:disable Naming/AccessorMethodName
     def set_response_adapter(response_adapter)
-      @response_adapter = response_adapter
+      @response_adapter = response_adapter || NucleusCore.configuration.response_adapter
     end
     # rubocop:enable Naming/AccessorMethodName
 
