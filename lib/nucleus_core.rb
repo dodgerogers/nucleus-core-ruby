@@ -25,7 +25,7 @@ module NucleusCore
 
   class Configuration
     attr_accessor :response_adapter, :default_response_format, :logger
-    attr_reader :exceptions_map
+    attr_reader :exceptions
 
     RESPONSE_ADAPTER_METHODS = %i[
       render_json render_xml render_text render_pdf render_csv render_nothing set_header
@@ -33,12 +33,12 @@ module NucleusCore
 
     def initialize
       @logger = nil
-      @exceptions_map = nil
+      @exceptions = format_exceptions
       @default_response_format = :json
     end
 
-    def exceptions_map=(args={})
-      @exceptions_map = format_exceptions(args)
+    def exceptions=(args={})
+      @exceptions = format_exceptions(args)
     end
 
     private
@@ -51,13 +51,13 @@ module NucleusCore
 
     def format_exceptions(exceptions={})
       exception_defaults = ERROR_STATUSES.reduce({}) { |acc, ex| acc.merge(ex => nil) }
-      exceptions_map = (exceptions || exception_defaults)
+      exceptions = (exceptions || exception_defaults)
         .slice(*exception_defaults.keys)
         .reduce({}) do |acc, (key, value)|
-          acc.merge(key => ArrayExtensions.wrap(value))
+          acc.merge(key => Utils.wrap(value))
         end
 
-      objectify(exceptions_map)
+      objectify(exceptions)
     end
   end
 
