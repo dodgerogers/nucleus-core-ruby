@@ -1,5 +1,4 @@
 require "test_helper"
-require "nucleus_core/response_adapter"
 
 def format_to_view_map
   {

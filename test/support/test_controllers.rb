@@ -53,7 +53,7 @@ module MockResponseAdapter
   end
 end
 
-# By default this controller, combined with Nucleus::Responder will use an injected
+# By default this controller, combined with NucleusCore::Responder will use an injected
 # ResponseAdapter, see `test/support/configuration` for details.
 # The `MockResponseAdapter` module can be opted into by calling:
 # `init_responder(request_format: , response_adapter: )` in a test.

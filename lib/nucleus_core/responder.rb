@@ -123,7 +123,7 @@ module NucleusCore
     end
 
     def logger(object, log_level=:info)
-      NucleusCore.configuration&.logger&.send(log_level, object)
+      NucleusCore.configuration.logger&.send(log_level, object)
     end
 
     def exceptions
