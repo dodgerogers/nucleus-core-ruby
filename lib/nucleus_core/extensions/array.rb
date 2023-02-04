@@ -1,11 +1,7 @@
-class Array
+module ArrayExtensions
   def self.wrap(object)
-    if object.nil?
-      []
-    elsif object.respond_to?(:to_ary)
-      object.to_ary || [object]
-    else
-      [object]
-    end
+    return [] if object.nil?
+
+    object.is_a?(Array) ? object : [object]
   end
 end
