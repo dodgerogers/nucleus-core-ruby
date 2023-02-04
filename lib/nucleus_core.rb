@@ -2,26 +2,24 @@ require "ostruct"
 require "json"
 require "set"
 
-Dir[File.join(__dir__, "nucleus_core", "extensions", "*.rb")].sort.each { |file| require file }
+response_adapters = File.join(__dir__, "nucleus_core", "response_adapters", "*.rb")
+extensions = File.join(__dir__, "nucleus_core", "extensions", "*.rb")
+view = File.join(__dir__, "nucleus_core", "views", "*.rb")
+exceptions = File.join(__dir__, "nucleus_core", "exceptions", "*.rb")
+
+[extensions, exceptions, response_adapters, view].each do |dir|
+  Dir[dir].sort.each { |f| require f }
+end
 
 module NucleusCore
   autoload :CLI, "nucleus_core/cli"
   autoload :VERSION, "nucleus_core/version"
   autoload :BasicObject, "nucleus_core/basic_object"
-  autoload :View, "nucleus_core/views/view"
-  autoload :ErrorView, "nucleus_core/views/error_view"
-  autoload :ResponseAdapter, "nucleus_core/response_adapter"
   autoload :Aggregate, "nucleus_core/aggregate"
   autoload :Policy, "nucleus_core/policy"
   autoload :Operation, "nucleus_core/operation"
   autoload :Workflow, "nucleus_core/workflow"
   autoload :Responder, "nucleus_core/responder"
-
-  class BaseException < StandardError; end
-  class NotAuthorized < BaseException; end
-  class NotFound < BaseException; end
-  class Unprocessable < BaseException; end
-  class BadRequest < BaseException; end
 
   class Configuration
     attr_accessor :response_adapter, :default_response_format, :logger
