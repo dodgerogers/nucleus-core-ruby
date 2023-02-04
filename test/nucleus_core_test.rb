@@ -4,9 +4,9 @@ describe NucleusCore do
   subject { NucleusCore.configuration }
 
   describe "#configure" do
-    describe "exceptions_map" do
+    describe "exceptions" do
       it "initializes with expected exception mapping" do
-        exceptions = subject.exceptions_map
+        exceptions = subject.exceptions
 
         # mapping set in `test/test_helper.rb`
         refute_nil(exceptions)
@@ -24,7 +24,7 @@ describe NucleusCore do
   #   after { NucleusCoreTestConfiguration.init! }
 
   #   it "sets the config back to the initial state" do
-  #     exceptions = subject.exceptions_map
+  #     exceptions = subject.exceptions
 
   #     refute_nil(exceptions.bad_request)
   #     refute_nil(exceptions.not_found)
@@ -34,7 +34,7 @@ describe NucleusCore do
 
   #     NucleusCore.reset
 
-  #     exceptions = NucleusCore.configuration.exceptions_map
+  #     exceptions = NucleusCore.configuration.exceptions
 
   #     assert_nil(exceptions.bad_request)
   #     assert_nil(exceptions.not_found)

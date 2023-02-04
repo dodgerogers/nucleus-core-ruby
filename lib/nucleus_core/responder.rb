@@ -101,18 +101,16 @@ module NucleusCore
 
     # rubocop:disable Lint/DuplicateBranch
     def exception_to_status(exception)
-      config = exception_map
-
       case exception
-      when NucleusCore::NotFound, *config.not_found
+      when NucleusCore::NotFound, *exceptions.not_found
         :not_found
-      when NucleusCore::BadRequest, *config.bad_request
+      when NucleusCore::BadRequest, *exceptions.bad_request
         :bad_request
-      when NucleusCore::NotAuthorized, *config.forbidden
+      when NucleusCore::NotAuthorized, *exceptions.forbidden
         :forbidden
-      when NucleusCore::Unprocessable, *config.unprocessable
+      when NucleusCore::Unprocessable, *exceptions.unprocessable
         :unprocessable_entity
-      when NucleusCore::BaseException, *config.server_error
+      when NucleusCore::BaseException, *exceptions.server_error
         :internal_server_error
       else
         :internal_server_error
@@ -125,11 +123,11 @@ module NucleusCore
     end
 
     def logger(object, log_level=:info)
-      NucleusCore.configuration.logger&.send(log_level, object)
+      NucleusCore.configuration&.logger&.send(log_level, object)
     end
 
-    def exception_map
-      NucleusCore.configuration.exceptions_map
+    def exceptions
+      NucleusCore.configuration.exceptions
     end
   end
 end

@@ -11,7 +11,7 @@ module NucleusCore
       policy_methods.each do |policy_method_and_args|
         next if send(*policy_method_and_args)
 
-        name = ArrayExtensions.wrap(policy_method_and_args).first
+        name = Utils.wrap(policy_method_and_args).first
         message = "You do not have access to: #{name}"
 
         raise NucleusCore::NotAuthorized, message
