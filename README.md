@@ -6,35 +6,38 @@
 
 #### Please note this package is in development, and is subject to breaking changes.
 
-Nucleus Core is a series of components which describe, orchestrate, and execute your business logic in a way that is separate, and agnostic to the framework. The components have preordained responsibilities, are composeable, and are written in plain old Ruby, so they should work everywhere.
+Nucleus Core is a series of components which describe, orchestrate, and execute your business logic in a way that is separate, and agnostic to the framework. The components have preordained responsibilities, and are written in plain old Ruby so they should work everywhere.
 
-**Responder** - The boundary between your application, and the framework. Hands view objects from executing your use cases to the framework to render.
+**Responder** - The boundary between your application, and the framework. Handles exceptions, and passes view objects to the framework to render.
 **Policy** - Authorization. can this process be performed?
 **Operation** - Service implementation. Executes one side effect, and can undo it.
-**Workflow** - Service Orchestration. Composes complex multi operation processes.
-**Repository** - Data Access. Handles the complexity of interacting with a data source.
+**Workflow** - Service Orchestration. Composes complex, multi operation processes.
+**Repository** - Data Access. Handles, and hides the complexity of interacting with a data source.
 **Aggregate** - Anti Corruption. Maps data to an object the application controls.
 **View** - Presentation. A view only object that can render to multiple formats.
 
-### How Nucleus interplays with the framework for a given request
+### How Nucleus interplays with the framework
 
-- (Framework) The server/application is issues a request
+- (Framework) The server/application is issued a request
 - (Framework) The parameters are validated, and formatted
 - (Nucleus) A policy authorizes the request with the given params
-- (Nucleus) An operation is executed with the params
+- (Nucleus) An operation is executed
   - (Nucleus) A repository fetches/mutates the data
     - (Nucleus) A aggregate is instantiated from the result
-- (Nucleus) The operation returns the repository aggregate, or the context of the failure
-- (Nucleus) The operation result is returned if NOT successful
-- (Nucleus) A View is instantiated and returned if successful
+- (Nucleus) The operation returns the aggregate, or context of the failure
+- (Nucleus) A View is instantiated and returned
   - (Nucleus) The view returns a response object for the given format
 - (Framework) The response object is serialized to the requested format
 
 ## Getting started
 
+1. Install the gem
+
 ```
 $ gem install nuclueus-core
 ```
+
+2. Initialize, and configure NucleusCore
 
 `initializers/nucleus_core.rb`
 
@@ -51,6 +54,8 @@ NucleusCore.configure do |config|
   }
 end
 ```
+
+3. That's it! Now, define your business logic using Policies, Operations, Workflows, Repositories, and Views then, wrap your components in the `handle_response` block method to render a result.
 
 `controllers/orders_controller.rb`
 
