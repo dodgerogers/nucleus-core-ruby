@@ -1,71 +1,136 @@
-# NucleusCore
+# Nucleus Core
 
 [![Gem Version](https://badge.fury.io/rb/nucleus-core.svg)](https://rubygems.org/gems/nucleus-core)
 [![Circle](https://circleci.com/gh/dodgerogers/nucleus-core/tree/main.svg?style=shield)](https://app.circleci.com/pipelines/github/dodgerogers/nucleus-core?branch=main)
 [![Code Climate](https://codeclimate.com/github/dodgerogers/nucleus-core/badges/gpa.svg)](https://codeclimate.com/github/dodgerogers/nucleus-core)
 
-NucleusCore Core is a set of components which express and orchestrate business logic separatley to the framework.
+#### Please note this package is in development, and is subject to breaking changes.
 
-## This gem is still very much in development. See `nucleus-rails` for Rails usage.
+Nucleus Core is a series of components which describe, orchestrate, and execute your business logic in a way that is separate, and agnostic to the framework. The components have preordained responsibilities, are composeable, and are written in plain old Ruby, so they should work everywhere.
 
-Here are the classes NucleusCore exposes, they have preordained responsibilities, can be composed together, and tested simply in isolation from the framework.
+**Responder** - The boundary between your application, and the framework. Hands view objects from executing your use cases to the framework to render.
+**Policy** - Authorization. can this process be performed?
+**Operation** - Service implementation. Executes one side effect, and can undo it.
+**Workflow** - Service Orchestration. Composes complex multi operation processes.
+**Repository** - Data Access. Handles the complexity of interacting with a data source.
+**Aggregate** - Anti Corruption. Maps data to an object the application controls.
+**View** - Presentation. A view only object that can render to multiple formats.
 
-- **Policy (Authorization)** - Can this user perform this process?
-- **Operation (Services)** - Executes a single unit of business logic, or side effect (ScheduleAppointment, CancelOrder, UpdateAddress).
-- **Workflow (Service Orchestration)** - Excecutes multiple units of work, and side effects (ApproveLoan, TakePayment, CancelFulfillments).
-- **View (Presentation)** - A presentation object which can render to multiple formats.
-- **Repository (Data access)** - Interacts with data sources to hide the implementation details to callers, and return Aggregates. Data sources could be an API, ActiveRecord, SQL, a local file, etc.
-- **Aggregate (Domain/business Object)** - Maps data from the data source to an object the aplication defines, known as an anti corruption layer.
+### How Nucleus interplays with the framework for a given request
 
-Below is an example using NucleusCore Core with Rails:
+- (Framework) The server/application is issues a request
+- (Framework) The parameters are validated, and formatted
+- (Nucleus) A policy authorizes the request with the given params
+- (Nucleus) An operation is executed with the params
+  - (Nucleus) A repository fetches/mutates the data
+    - (Nucleus) A aggregate is instantiated from the result
+- (Nucleus) The operation returns the repository aggregate, or the context of the failure
+- (Nucleus) The operation result is returned if NOT successful
+- (Nucleus) A View is instantiated and returned if successful
+  - (Nucleus) The view returns a response object for the given format
+- (Framework) The response object is serialized to the requested format
+
+## Getting started
+
+```
+$ gem install nuclueus-core
+```
+
+`initializers/nucleus_core.rb`
 
 ```ruby
-# controllers/payments_controller.rb
-class PaymentsController < ApplicationController
+require "nucleus-core"
+
+NucleusCore.configure do |config|
+  config.logger = Rails.logger
+  config.exceptions = {
+    not_found: ActiveRecord::RecordNotFound,
+    unprocessible: [ActiveRecord::RecordInvalid, ActiveRecord::RecordNotSaved, ActiveRecord::StatementInvalid],
+    bad_request: Apipie::ParamError,
+    unauthorized: Pundit::NotAuthorizedError
+  }
+end
+```
+
+`controllers/orders_controller.rb`
+
+```ruby
+#
+# This is the boundary between the framework and your business logic.
+# The controller forwards request parameters to the Responder, Nucleus executes the operation/workflow,
+# instantiates a view, and then calls the framework render the output.
+class OrdersController
   include NucleusCore::Responder
+
+  before_action do |controller|
+    init_responder(response_adapter: controller)
+  end
 
   def create
     handle_response do
       policy.enforce!(:can_write?)
 
-      context, _process = HandleCheckoutWorkflow.call(invoice_params)
+      context, _process = Workflows::FulfillOrder.call(invoice_params)
 
       return context if !context.success?
 
-      return PaymentView.new(cart: context.cart, paid: context.paid)
+      return Views::Order.new(order: context.order, paid: context.paid)
     end
   end
 
   private
 
   def policy
-    Policy.new(current_user)
+    Policies::Order.new(current_user)
   end
 
   def invoice_params
-    params.slice(:cart_id)
+    params.slice(:order_id)
   end
 end
+```
 
-# workflows/handle_checkout_workflow.rb
-class HandleCheckoutWorkflow < NucleusCore::Workflow
+`policies/order.rb`
+
+```ruby
+#
+# Policies exist to answer the question "can this processs be performed?
+class Policies::Order < Nucleus::Policy
+  def can_write?
+    user.has_permissions?(...)
+  end
+end
+```
+
+`workflows/fulfill_order.rb`
+
+```ruby
+#
+# Workflows consists of an orchestrated and repeatable pattern of operations.
+class Workflows::FulfillOrder < NucleusCore::Workflow
   def define
-    start_node(continue: :calculate_amount)
+    start_node(continue: :apply_discount?)
     register_node(
-      state: :calculate_amount,
-      operation: FetchShoppingCart,
-      determine_signal: ->(context) { context.cart.total > 10 ? :discount : :pay },
+      state: :apply_discount?,
+      operation: Operations::FetchOrder,
+      determine_signal: ->(context) { context.order.total > 10 ? :discount : :pay },
       signals: { discount: :apply_discount, pay: :take_payment }
     )
     register_node(
       state: :apply_discount,
-      operation: ApplyDiscountToShoppingCart,
+      operation: Operations::ApplyOrderDiscount,
       signals: { continue: :take_payment }
     )
     register_node(
       state: :take_payment,
-      operation: ->(context) { context.paid = context.cart.paid },
-      determine_signal: ->(_) { :completed }
+      operation: ->(context) { context.paid = context.order.paid },
+      determine_signal: ->(_) { :ship },
+      signals: { ship: :organize_shipping }
+    )
+    register_node(
+      state: :organize_shipping,
+      operation: Operations::SetupShipping,
+      signals: { continue: :completed }
     )
     register_node(
       state: :completed,
@@ -73,71 +138,128 @@ class HandleCheckoutWorkflow < NucleusCore::Workflow
     )
   end
 end
+```
 
-# app/operations/fetch_shopping_cart.rb
-class FetchShoppingCart < NucleusCore::Operation
+`app/operations/\*.rb`
+
+```ruby
+#
+# Operations represent one unit of business logic, or one side effect.
+# They know how to perform their function well, and how to undo the side effects.
+class Operations::FetchOrder < NucleusCore::Operation
   def call
-    cart = ShoppingCartRepository.find(context.cart_id)
+    order = Repositories::Orders.find!(context.order_id)
 
-    context.cart = cart
+    context.order = order
   rescue NucleusCore::NotFound => e
     context.fail!(e.message, exception: e)
   end
 end
 
-# app/repositories/shopping_cart_repository.rb
-class ShoppingCartRepository < NucleusCore::Repository
-  def self.find(cart_id)
-    cart = ShoppingCart.find(cart_id)
+class Operations::ApplyOrderDiscount < NucleusCore::Operation
+  def call
+    order = Repositories::Orders.update!(context.order_id, discount: 0.75)
 
-    return ShoppingCart::Aggregate.new(cart)
+    context.order
+    context.order_changes = order.changes
+  rescue NucleusCore::NotFound, NucleusCore::Unprocessable => e
+    context.fail!(e.message, exception: e)
+  end
+
+  def rollback
+    return if !context.order_changes
+
+    Repositories::Orders.update!(context.order_id, context.order_changes)
+  end
+end
+
+class Operations::SetupShipping < NucleusCore::Operation
+  def call
+    # ...
+  end
+end
+```
+
+`app/repositories/orders_repository.rb`
+
+```ruby
+#
+# Here our data source is ActiveRecord, but it could be an API, raw SQL, a local file, mongo, Firebase, etc.
+# The complexity, and details about "how" the data is accessed is hidden to the caller, and an objectthe application defines is returned.
+class Repositories::Orders < NucleusCore::Repository
+  def self.find!(order_id)
+    cart = Order.find(order_id)
+
+    return Aggregates::Order.new(cart)
   rescue ActiveRecord::RecordNotFound => e
     raise NucleusCore::NotFound, e.message
   end
 
-  def self.discount(cart_id, percentage)
-    cart = find(cart_id, percentage=0.5)
+  def self.update!(order_id, attrs={})
+    cart = find(order_id)
 
-    cart.update!(total: cart.total * percentage, paid: true)
+    attrs.tap do |a|
+      attrs[:total] = cart.total * attrs.delete(:discount) if attrs[:discount]
+      attrs[:paid] = true
+    end
 
-    return ShoppingCart::Aggregate.new(cart)
+    cart.assign_attributes(attrs)
+    cart.save!
+
+    return Aggregates::Order.new(cart)
   rescue NucleusCore::NotFound => e
     raise e
+  rescue ActiveRecord::RecordNotSaved => e
+    raise Nucleus::Unprocessable, e.message
   end
 end
+```
 
-# app/models/shopping_cart.rb
-class ShoppingCart < ActiveRecord::Base
+`app/models/order.rb`
+
+```ruby
+#
+# Here we are using the ActiveRecord ORM to handle the low level interactions with the data source (a database).
+class Order < ActiveRecord::Base
+  validates :total, :items, presence: true
   # ...
 end
+```
 
-# app/aggregates/shopping_cart.rb
-class ShoppingCart::Aggregate < NucleusCore::Aggregate
-  def initialize(cart)
-    super(id: cart.id, total: cart.total, paid: cart.paid, created_at: cart.created_at)
+`app/aggregates/order.rb`
+
+```ruby
+#
+# The aggregates takes an object returned from a data source, and adapts it to a spefici PORO
+# the application defines, and controls. Also known as an "anti-corruption layer".
+class Aggregates::Order < NucleusCore::Aggregate
+  def initialize(order)
+    super(id: order.id, total: order.total, paid: order.paid, created_at: order.created_at)
   end
 end
+```
 
-# app/operations/apply_discount_to_shopping_cart.rb
-class ApplyDiscountToShoppingCart < NucleusCore::Operation
-  def call
-    cart = ShoppingCartRepository.discount(context.cart_id, 0.75)
+`app/views/order.rb`
 
-    context.cart
-  rescue NucleusCore::NotFound => e
-    context.fail!(e.message, exception: e)
-  end
-end
-
-# app/views/payments_view.rb
-class NucleusCore::PaymentView < NucleusCore::View
-  def initialize(cart)
-    super(total: "$#{cart.total}", paid: cart.paid, created_at: cart.created_at)
+```ruby
+#
+# Presentation objects which extract properties from an aggregate (or something else) for rendering.
+# They implement all the ways the object can be serialized (json, xml, csv, pdf, ...etc).
+class Views::Order < NucleusCore::View
+  def initialize(order)
+    attrs = {
+      id: order.id,
+      price: "$#{order.total}",
+      paid: order.paid,
+      created_at: order.created_at
+    }
+    super(attrs)
   end
 
   def json_response
     content = {
       payment: {
+        id: id,
         price: price,
         paid: paid,
         created_at: created_at,
@@ -149,34 +271,35 @@ class NucleusCore::PaymentView < NucleusCore::View
   end
 
   def pdf_response
-    pdf_string = generate_pdf_string(price, paid)
-
-    NucleusCore::PdfResponse.new(content: pdf_string)
+    NucleusCore::PdfResponse.new(content: generate_pdf)
   end
 
-  private def generate_pdf_string(price, paid)
-    # pdf string genration...
+  private def generate_pdf
+    # ...
   end
 end
 ```
 
+##### How to use in a new framework
+
+1. Implement a class that defines the `render_<format>` methods (see `Nucleus::Responder#render_response`).
+2. See `NucleusCore::Responder#init_responder` to set the class dynamically, or use the `response_adapter` config property.
+3. Tell us about it!
+
+See [!nucleus-rails](https://rubygems.org/gems/nucleus-rails) for an example.
+
 ---
 
 - [Quick start](#quick-start)
+- [Best practixes](#best-practices)
 - [Support](#support)
 - [License](#license)
 - [Code of conduct](#code-of-conduct)
 - [Contribution guide](#contribution-guide)
 
-## Quick start
+## Best practices
 
-```
-$ gem install nucleus-core
-```
-
-```ruby
-require "nucleus-core"
-```
+TODO:
 
 ## Support
 
