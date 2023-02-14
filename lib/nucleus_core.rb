@@ -14,20 +14,14 @@ end
 module NucleusCore
   autoload :CLI, "nucleus_core/cli"
   autoload :VERSION, "nucleus_core/version"
-  autoload :BasicObject, "nucleus_core/basic_object"
-  autoload :Aggregate, "nucleus_core/aggregate"
-  autoload :Policy, "nucleus_core/policy"
   autoload :Operation, "nucleus_core/operation"
   autoload :Workflow, "nucleus_core/workflow"
   autoload :Responder, "nucleus_core/responder"
+  autoload :SimpleObject, "nucleus_core/basic_object"
 
   class Configuration
-    attr_accessor :response_adapter, :default_response_format, :logger
+    attr_accessor :default_response_format, :logger
     attr_reader :exceptions
-
-    RESPONSE_ADAPTER_METHODS = %i[
-      render_json render_xml render_text render_pdf render_csv render_nothing set_header
-    ].freeze
 
     def initialize
       @logger = nil

@@ -1,6 +1,6 @@
-require "nucleus_core/basic_object"
+require "nucleus_core/simple_object"
 
-class NucleusCore::ResponseAdapter < NucleusCore::BasicObject
+class NucleusCore::ResponseAdapter < NucleusCore::SimpleObject
   def initialize(attrs={})
     attributes = defaults
       .merge(attrs)

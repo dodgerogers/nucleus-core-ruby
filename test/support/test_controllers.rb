@@ -71,8 +71,6 @@ class TestController
 
   def index
     handle_response do
-      policy.enforce!(:can_write?)
-
       context, _process = SimpleWorkflow.call(context: params)
 
       return SimpleView.new(total: context.total) if context.success?
@@ -83,8 +81,6 @@ class TestController
 
   def show
     handle_response do
-      policy.enforce!(:can_read?)
-
       context = TestOperation.call(params)
 
       return SimpleView.new(total: context.total) if context.success?
@@ -94,10 +90,6 @@ class TestController
   end
 
   private
-
-  def policy
-    TestPolicy.new(current_user)
-  end
 
   def current_user
     OpenStruct.new(id: SecureRandom.uuid)

@@ -87,9 +87,9 @@ describe NucleusCore::Responder do
 
         assert(response.is_a?(NucleusCore::JsonResponse))
         assert_equal(500, response.status)
-        assert_equal(:internal_server_error, response.content["status"])
-        assert_match("comparison of Symbol with 20 failed", response.content["message"])
-        assert_empty(response.content["errors"])
+        assert_equal(:internal_server_error, response.content[:status])
+        assert_match("comparison of Symbol with 20 failed", response.content[:message])
+        assert_empty(response.content[:errors])
       end
     end
 
@@ -105,9 +105,9 @@ describe NucleusCore::Responder do
         response = subject
 
         expected_response = {
-          "status"  => :unprocessable_entity,
-          "message" => "total has reached max",
-          "errors"  => []
+          status: :unprocessable_entity,
+          message: "total has reached max",
+          errors: []
         }
         assert(response.is_a?(NucleusCore::JsonResponse))
         assert_equal(expected_response, response.content)
