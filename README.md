@@ -55,14 +55,16 @@ end
 class OrdersController
   include NucleusCore::Responder
 
-  before_action do |controller|
+  before_action do |_controller|
     # Initialize a response adapter that implements the required render methods.
     # See `Responder#render_response` for details.
-    init_responder(response_adapter: controller)
+    init_responder(
+      response_adapter: ResponseAdapter,
+      request_adapter: RequestAdapter)
   end
 
   def create
-    handle_response do
+    handle_response(request) do
       policy.enforce!(:can_write?)
 
       context, _process = Workflows::FulfillOrder.call(context: params)

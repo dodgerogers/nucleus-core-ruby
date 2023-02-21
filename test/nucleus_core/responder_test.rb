@@ -1,22 +1,8 @@
 require "test_helper"
 
-def format_to_view_map
-  {
-    json: NucleusCore::JsonResponse,
-    xml: NucleusCore::XmlResponse,
-    text: NucleusCore::TextResponse,
-    pdf: NucleusCore::PdfResponse,
-    csv: NucleusCore::CsvResponse
-  }
-end
-
 describe NucleusCore::Responder do
   describe "success" do
-    subject do
-      controller = TestController.new
-      controller.init_responder(response_adapter: TestAdapter, request_format: :json)
-      controller.index
-    end
+    subject { TestController.new.index }
 
     it "returns expected response entity" do
       response = subject
@@ -24,13 +10,15 @@ describe NucleusCore::Responder do
       assert(response.is_a?(NucleusCore::JsonResponse))
     end
 
-    format_to_view_map.each do |request_format, view_class|
-      describe "with #{request_format} request" do
-        subject do
-          controller = TestController.new
-          controller.init_responder(response_adapter: TestAdapter, request_format: request_format)
-          controller.index
-        end
+    {
+      json: NucleusCore::JsonResponse,
+      xml: NucleusCore::XmlResponse,
+      text: NucleusCore::TextResponse,
+      pdf: NucleusCore::PdfResponse,
+      csv: NucleusCore::CsvResponse
+    }.each do |request_format, view_class|
+      describe "when #{request_format} request" do
+        subject { TestController.new.index(format: request_format) }
 
         it "returns expected response entity" do
           response = subject
@@ -39,48 +27,11 @@ describe NucleusCore::Responder do
         end
       end
     end
-
-    describe "when setting `response_adapter` to an instance" do
-      subject do
-        controller = TestController.new
-        controller.init_responder(response_adapter: controller, request_format: :json)
-        controller.index
-      end
-
-      it "returns expected response entity" do
-        response = subject
-
-        assert_equal("NucleusCore::JsonResponse", response)
-      end
-
-      # The injected response_adapter sets each adapter method to return the class
-      # name of the returned entity
-      format_to_view_map.each do |request_format, view_class|
-        describe "with #{request_format} request" do
-          subject do
-            controller = TestController.new
-            controller.init_responder(response_adapter: controller, request_format: request_format)
-            controller.index
-          end
-
-          it "returns expected response entity" do
-            response = subject
-
-            assert_equal(view_class.name, response)
-          end
-        end
-      end
-    end
   end
 
   describe "failure" do
     describe "when an exception is raised" do
-      subject do
-        # {} will force a NoMethodError when we try and perform addition
-        controller = TestController.new(params: { total: :wut })
-        controller.init_responder(response_adapter: TestAdapter, request_format: :json)
-        controller.show
-      end
+      subject { TestController.new.show(params: { total: :nan }) }
 
       it "returns expected response entity" do
         response = subject
@@ -94,12 +45,7 @@ describe NucleusCore::Responder do
     end
 
     describe "when the operation fails" do
-      subject do
-        # A total > 20 forces a context error implemented inside SimpleWorkflow
-        controller = TestController.new(params: { total: 21 })
-        controller.init_responder(response_adapter: TestAdapter, request_format: :json)
-        controller.show
-      end
+      subject { TestController.new.show(params: { total: 21 }) }
 
       it "returns expected response entity" do
         response = subject
