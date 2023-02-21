@@ -4,6 +4,8 @@ require "ostruct"
 # By default this controller NucleusCore::Responder will use an injected
 # ResponseAdapter, see `test/support/configuration` for details.
 class TestController
+  attr_reader :responder
+
   def initialize(attrs={})
     @responder = NucleusCore::Responder.new(
       response_adapter: attrs.fetch(:response_adapter, TestResponseAdapter),
@@ -14,7 +16,7 @@ class TestController
   def index(params={})
     request = init_request(params)
 
-    @responder.execute(request) do |req|
+    responder.execute(request) do |req|
       context, _process = SimpleWorkflow.call(context: req.parameters)
 
       return TestSimpleView.new(total: context.total) if context.success?
@@ -26,12 +28,20 @@ class TestController
   def show(params={})
     request = init_request(params)
 
-    @responder.execute(request) do |req|
+    responder.execute(request) do |req|
       context = TestOperation.call(req.parameters)
 
       return TestSimpleView.new(total: context.total) if context.success?
 
       return context
+    end
+  end
+
+  def update(params={})
+    request = init_request(params)
+
+    responder.execute(request) do |_req|
+      return TestSimpleView.new(total: 0).csv_response
     end
   end
 
@@ -41,11 +51,7 @@ class TestController
     {
       format: params.fetch(:format, :json),
       headers: params.fetch(:headers, {}),
-      parameters: params.fetch(:params, total: 5)
+      parameters: params.fetch(:params, { total: 5 })
     }
-  end
-
-  def current_user
-    OpenStruct.new(id: SecureRandom.uuid)
   end
 end

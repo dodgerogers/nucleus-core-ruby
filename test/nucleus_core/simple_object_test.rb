@@ -15,6 +15,7 @@ describe NucleusCore::SimpleObject do
       assert_equal("Bob", to.instance_variable_get(:@name))
       assert_equal(123, to.number)
       assert_equal(123, to.instance_variable_get(:@number))
+      assert_equal(@args, to.to_h)
     end
   end
 end

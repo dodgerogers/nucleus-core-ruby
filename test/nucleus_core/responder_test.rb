@@ -27,6 +27,16 @@ describe NucleusCore::Responder do
         end
       end
     end
+
+    describe "when a response object is returned" do
+      subject { TestController.new.update(format: :json) }
+
+      it "renders response in the returned format irrespective to the request format" do
+        response = subject
+
+        assert(response.is_a?(NucleusCore::CsvResponse))
+      end
+    end
   end
 
   describe "failure" do
