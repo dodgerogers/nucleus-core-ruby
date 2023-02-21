@@ -1,33 +1,49 @@
 require "set"
 
 module NucleusCore
-  module Responder
-    attr_reader :request_format, :response_adapter
+  class Responder
+    attr_reader :response_adapter, :request_adapter, :request
 
-    def init_responder(request_format: nil, response_adapter: nil)
-      set_request_format(request_format)
-      set_response_adapter(response_adapter)
-    end
-
-    # rubocop:disable Naming/AccessorMethodName
-    def set_request_format(request=nil)
-      @request_format = request&.to_sym || NucleusCore.configuration.default_response_format
-    end
-
-    def set_response_adapter(response_adapter)
+    def initialize(request_adapter: nil, response_adapter: nil)
+      @request_adapter = request_adapter
       @response_adapter = response_adapter
+      @request = nil
     end
-    # rubocop:enable Naming/AccessorMethodName
 
     # rubocop:disable Lint/RescueException:
-    def handle_response(&block)
-      entity = proc_to_lambda(&block)
+    def execute(raw_request=nil, &block)
+      return if block.nil?
+
+      @request = init_request!(raw_request)
+      entity = proc_to_lambda(&block).call(@request)
 
       render_entity(entity)
     rescue Exception => e
       handle_exception(e)
     end
     # rubocop:enable Lint/RescueException:
+
+    def init_request!(raw_request=nil)
+      attributes = request_adapter&.call(raw_request) || {}
+
+      NucleusCore::RequestAdapter.new(attributes)
+    end
+
+    # Calling `return` in a block/proc returns from the outer calling scope as well.
+    # Lambdas do not have this limitation. So we convert the proc returned
+    # from a block method into a lambda to avoid 'return' exiting the method early.
+    # https://stackoverflow.com/questions/2946603/ruby-convert-proc-to-lambda
+    def proc_to_lambda(&block)
+      define_singleton_method(:_proc_to_lambda_, &block)
+
+      method(:_proc_to_lambda_).to_proc
+    end
+
+    def render_entity(entity)
+      return handle_context(entity) if entity.is_a?(NucleusCore::Operation::Context)
+      return render_view(entity) if subclass_of(entity, NucleusCore::View)
+      return render_response(entity) if subclass_of(entity, NucleusCore::ResponseAdapter)
+    end
 
     def handle_exception(exception)
       logger(exception)
@@ -39,39 +55,22 @@ module NucleusCore
       render_entity(error)
     end
 
-    # Calling `return` in a block/proc returns from the outer calling scope as well.
-    # Lambdas do not have this limitation. So we convert the proc returned
-    # from a block method into a lambda to avoid 'return' exiting the method early.
-    # https://stackoverflow.com/questions/2946603/ruby-convert-proc-to-lambda
-    def proc_to_lambda(&block)
-      define_singleton_method(:_proc_to_lambda_, &block)
-
-      method(:_proc_to_lambda_).to_proc.call
-    end
-
-    def render_entity(entity)
-      return handle_context(entity) if entity.is_a?(NucleusCore::Operation::Context)
-      return render_response(entity) if subclass_of(entity, NucleusCore::ResponseAdapter)
-      return render_view(entity) if subclass_of(entity, NucleusCore::View)
-    end
-
     def handle_context(context)
       return render_nothing(context) if context.success?
       return handle_exception(context.exception) if context.exception
 
       message = context.message
       attrs = { message: message, status: :unprocessable_entity }
-      error_view = NucleusCore::ErrorView.new(attrs)
+      view = NucleusCore::ErrorView.new(attrs)
 
-      render_view(error_view)
+      render_view(view)
     end
 
     def render_view(view)
-      format_rendering = "#{request_format}_response".to_sym
-      renders_format = view.respond_to?(format_rendering)
-      format_response = view.send(format_rendering) if renders_format
+      render_to_format = "#{@request.format}_response".to_sym
+      format_response = view.send(render_to_format) if view.respond_to?(render_to_format)
 
-      raise NucleusCore::BadRequest, "#{request_format} is not supported" if format_response.nil?
+      raise NucleusCore::BadRequest, "`#{@request.format}` is not supported" if format_response.nil?
 
       render_response(format_response)
     end
@@ -79,7 +78,7 @@ module NucleusCore
     def render_response(entity)
       render_headers(entity.headers)
 
-      method_name = {
+      render_method = {
         NucleusCore::JsonResponse => :render_json,
         NucleusCore::XmlResponse => :render_xml,
         NucleusCore::PdfResponse => :render_pdf,
@@ -88,7 +87,7 @@ module NucleusCore
         NucleusCore::NoResponse => :render_nothing
       }.fetch(entity.class, nil)
 
-      response_adapter&.send(method_name, entity)
+      response_adapter&.send(render_method, entity)
     end
 
     def render_headers(headers={})
@@ -99,8 +98,9 @@ module NucleusCore
       end
     end
 
-    # rubocop:disable Lint/DuplicateBranch
     def exception_to_status(exception)
+      exceptions = NucleusCore.configuration.exceptions
+
       case exception
       when NucleusCore::NotFound, *exceptions.not_found
         :not_found
@@ -110,13 +110,10 @@ module NucleusCore
         :forbidden
       when NucleusCore::Unprocessable, *exceptions.unprocessable
         :unprocessable_entity
-      when NucleusCore::BaseException, *exceptions.server_error
-        :internal_server_error
       else
         :internal_server_error
       end
     end
-    # rubocop:enable Lint/DuplicateBranch
 
     def subclass_of(entity, *classes)
       Set[*entity.class.ancestors].intersect?(classes.to_set)
@@ -124,10 +121,6 @@ module NucleusCore
 
     def logger(object, log_level=:info)
       NucleusCore.configuration.logger&.send(log_level, object)
-    end
-
-    def exceptions
-      NucleusCore.configuration.exceptions
     end
   end
 end

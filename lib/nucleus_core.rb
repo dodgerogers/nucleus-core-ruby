@@ -2,12 +2,13 @@ require "ostruct"
 require "json"
 require "set"
 
-response_adapters = File.join(__dir__, "nucleus_core", "response_adapters", "*.rb")
 extensions = File.join(__dir__, "nucleus_core", "extensions", "*.rb")
-view = File.join(__dir__, "nucleus_core", "views", "*.rb")
 exceptions = File.join(__dir__, "nucleus_core", "exceptions", "*.rb")
+views = File.join(__dir__, "nucleus_core", "views", "*.rb")
+response_adapters = File.join(__dir__, "nucleus_core", "response_adapters", "*.rb")
+request_adapters = File.join(__dir__, "nucleus_core", "request_adapters", "*.rb")
 
-[extensions, exceptions, response_adapters, view].each do |dir|
+[extensions, exceptions, views, response_adapters, request_adapters].each do |dir|
   Dir[dir].sort.each { |f| require f }
 end
 
@@ -35,11 +36,7 @@ module NucleusCore
 
     private
 
-    def objectify(hash)
-      OpenStruct.new(hash)
-    end
-
-    ERROR_STATUSES = %i[not_found bad_request unauthorized unprocessable server_error].freeze
+    ERROR_STATUSES = %i[not_found bad_request unauthorized unprocessable].freeze
 
     def format_exceptions(exceptions={})
       exception_defaults = ERROR_STATUSES.reduce({}) { |acc, ex| acc.merge(ex => nil) }
@@ -49,7 +46,7 @@ module NucleusCore
           acc.merge(key => Utils.wrap(value))
         end
 
-      objectify(exceptions)
+      OpenStruct.new(exceptions)
     end
   end
 

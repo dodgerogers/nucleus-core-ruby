@@ -15,7 +15,12 @@ class NucleusCore::ResponseAdapter < NucleusCore::SimpleObject
   private
 
   def defaults
-    { content: "", headers: {}, status: 200, location: nil }
+    {
+      content: nil,
+      headers: nil,
+      status: nil,
+      location: nil
+    }
   end
 
   def status_code(status=nil)

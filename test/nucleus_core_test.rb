@@ -14,33 +14,29 @@ describe NucleusCore do
         assert_equal([LoadError], exceptions.not_found)
         assert_equal([RuntimeError], exceptions.unprocessable)
         assert_equal([SecurityError], exceptions.unauthorized)
-        assert_equal([SignalException], exceptions.server_error)
       end
     end
   end
 
-  # TODO: uncomment
-  # describe "#reset" do
-  #   after { NucleusCoreTestConfiguration.init! }
+  describe "#reset" do
+    before { NucleusCoreTestConfiguration.init! }
+    after { NucleusCoreTestConfiguration.init! }
 
-  #   it "sets the config back to the initial state" do
-  #     exceptions = subject.exceptions
+    it "sets the config back to the initial state" do
+      exceptions = subject.exceptions
 
-  #     refute_nil(exceptions.bad_request)
-  #     refute_nil(exceptions.not_found)
-  #     refute_nil(exceptions.unprocessable)
-  #     refute_nil(exceptions.unauthorized)
-  #     refute_nil(exceptions.server_error)
+      refute_nil(exceptions.bad_request)
+      refute_nil(exceptions.not_found)
+      refute_nil(exceptions.unprocessable)
+      refute_nil(exceptions.unauthorized)
 
-  #     NucleusCore.reset
+      NucleusCore.reset
 
-  #     exceptions = NucleusCore.configuration.exceptions
-
-  #     assert_nil(exceptions.bad_request)
-  #     assert_nil(exceptions.not_found)
-  #     assert_nil(exceptions.unprocessable)
-  #     assert_nil(exceptions.unauthorized)
-  #     assert_nil(exceptions.server_error)
-  #   end
-  # end
+      exceptions = NucleusCore.configuration.exceptions
+      assert_nil(exceptions.bad_request)
+      assert_nil(exceptions.not_found)
+      assert_nil(exceptions.unprocessable)
+      assert_nil(exceptions.unauthorized)
+    end
+  end
 end
