@@ -2,20 +2,21 @@ require "set"
 
 module NucleusCore
   class Responder
-    attr_reader :response_adapter, :request_adapter, :request
+    attr_accessor :response_adapter, :request_adapter, :request_context
 
     def initialize(request_adapter: nil, response_adapter: nil)
       @request_adapter = request_adapter
       @response_adapter = response_adapter
-      @request = nil
+      @request_context = nil
     end
 
     # rubocop:disable Lint/RescueException:
-    def execute(raw_request=nil, &block)
+    def execute(raw_request_context=nil, &block)
       return if block.nil?
 
-      @request = init_request!(raw_request)
-      entity = proc_to_lambda(&block).call(@request)
+      request_context_attrs = request_adapter&.call(raw_request_context) || {}
+      @request_context = NucleusCore::RequestAdapter.new(request_context_attrs)
+      entity = execute_block(@request_context, &block)
 
       render_entity(entity)
     rescue Exception => e
@@ -23,20 +24,14 @@ module NucleusCore
     end
     # rubocop:enable Lint/RescueException:
 
-    def init_request!(raw_request=nil)
-      attributes = request_adapter&.call(raw_request) || {}
-
-      NucleusCore::RequestAdapter.new(attributes)
-    end
-
     # Calling `return` in a block/proc returns from the outer calling scope as well.
     # Lambdas do not have this limitation. So we convert the proc returned
     # from a block method into a lambda to avoid 'return' exiting the method early.
     # https://stackoverflow.com/questions/2946603/ruby-convert-proc-to-lambda
-    def proc_to_lambda(&block)
+    def execute_block(request, &block)
       define_singleton_method(:_proc_to_lambda_, &block)
 
-      method(:_proc_to_lambda_).to_proc
+      method(:_proc_to_lambda_).to_proc.call(request)
     end
 
     def render_entity(entity)
@@ -45,32 +40,20 @@ module NucleusCore
       return render_response(entity) if subclass_of(entity, NucleusCore::ResponseAdapter)
     end
 
-    def handle_exception(exception)
-      logger(exception)
-
-      status = exception_to_status(exception)
-      attrs = { message: exception.message, status: status }
-      error = NucleusCore::ErrorView.new(attrs)
-
-      render_entity(error)
-    end
-
     def handle_context(context)
       return render_nothing(context) if context.success?
       return handle_exception(context.exception) if context.exception
 
-      message = context.message
-      attrs = { message: message, status: :unprocessable_entity }
-      view = NucleusCore::ErrorView.new(attrs)
+      view = NucleusCore::ErrorView.new(message: context.message, status: :unprocessable_entity)
 
       render_view(view)
     end
 
     def render_view(view)
-      render_to_format = "#{@request.format}_response".to_sym
+      render_to_format = "#{request_context.format}_response".to_sym
       format_response = view.send(render_to_format) if view.respond_to?(render_to_format)
 
-      raise NucleusCore::BadRequest, "`#{@request.format}` is not supported" if format_response.nil?
+      raise NucleusCore::BadRequest, "`#{request_context.format}` is not supported" if format_response.nil?
 
       render_response(format_response)
     end
@@ -88,6 +71,15 @@ module NucleusCore
       }.fetch(entity.class, nil)
 
       response_adapter&.send(render_method, entity)
+    end
+
+    def handle_exception(exception)
+      logger(exception)
+
+      status = exception_to_status(exception)
+      view = NucleusCore::ErrorView.new(message: exception.message, status: status)
+
+      render_view(view)
     end
 
     def render_headers(headers={})

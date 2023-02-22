@@ -25,18 +25,18 @@ describe NucleusCore do
     it "sets the config back to the initial state" do
       exceptions = subject.exceptions
 
-      refute_nil(exceptions.bad_request)
-      refute_nil(exceptions.not_found)
-      refute_nil(exceptions.unprocessable)
-      refute_nil(exceptions.unauthorized)
+      refute_empty(exceptions.bad_request)
+      refute_empty(exceptions.not_found)
+      refute_empty(exceptions.unprocessable)
+      refute_empty(exceptions.unauthorized)
 
       NucleusCore.reset
 
       exceptions = NucleusCore.configuration.exceptions
-      assert_nil(exceptions.bad_request)
-      assert_nil(exceptions.not_found)
-      assert_nil(exceptions.unprocessable)
-      assert_nil(exceptions.unauthorized)
+      assert_empty(exceptions.bad_request)
+      assert_empty(exceptions.not_found)
+      assert_empty(exceptions.unprocessable)
+      assert_empty(exceptions.unauthorized)
     end
   end
 end

@@ -6,9 +6,7 @@ extensions = File.join(__dir__, "nucleus_core", "extensions", "*.rb")
 exceptions = File.join(__dir__, "nucleus_core", "exceptions", "*.rb")
 views = File.join(__dir__, "nucleus_core", "views", "*.rb")
 response_adapters = File.join(__dir__, "nucleus_core", "response_adapters", "*.rb")
-request_adapters = File.join(__dir__, "nucleus_core", "request_adapters", "*.rb")
-
-[extensions, exceptions, views, response_adapters, request_adapters].each do |dir|
+[extensions, exceptions, views, response_adapters].each do |dir|
   Dir[dir].sort.each { |f| require f }
 end
 
@@ -18,11 +16,14 @@ module NucleusCore
   autoload :Operation, "nucleus_core/operation"
   autoload :Workflow, "nucleus_core/workflow"
   autoload :Responder, "nucleus_core/responder"
+  autoload :RequestAdapter, "nucleus_core/request_adapter"
   autoload :SimpleObject, "nucleus_core/basic_object"
 
   class Configuration
     attr_accessor :default_response_format, :logger
     attr_reader :exceptions
+
+    ERROR_STATUSES = %i[not_found bad_request unauthorized unprocessable].freeze
 
     def initialize
       @logger = nil
@@ -36,15 +37,11 @@ module NucleusCore
 
     private
 
-    ERROR_STATUSES = %i[not_found bad_request unauthorized unprocessable].freeze
-
-    def format_exceptions(exceptions={})
-      exception_defaults = ERROR_STATUSES.reduce({}) { |acc, ex| acc.merge(ex => nil) }
-      exceptions = (exceptions || exception_defaults)
-        .slice(*exception_defaults.keys)
-        .reduce({}) do |acc, (key, value)|
-          acc.merge(key => Utils.wrap(value))
-        end
+    def format_exceptions(args={})
+      exceptions = ERROR_STATUSES
+        .reduce({}) { |acc, name| acc.merge(name => nil) }
+        .merge(args)
+        .transform_values { |values| Utils.wrap(values) }
 
       OpenStruct.new(exceptions)
     end
