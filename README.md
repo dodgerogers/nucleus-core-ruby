@@ -4,12 +4,32 @@
 [![Circle](https://circleci.com/gh/dodgerogers/nucleus-core/tree/main.svg?style=shield)](https://app.circleci.com/pipelines/github/dodgerogers/nucleus-core?branch=main)
 [![Code Climate](https://codeclimate.com/github/dodgerogers/nucleus-core/badges/gpa.svg)](https://codeclimate.com/github/dodgerogers/nucleus-core)
 
-Nucleus Core is the boundary between your business logic, and a framework.
+- [Overview](#overview)
+- [Components](#components)
+- [Supported Frameworks](#supported-frameworks)
+- [Quick start](#quick-start)
+- [Best practices](#best-practices)
+- [Support](#support)
+- [License](#license)
+- [Code of conduct](#code-of-conduct)
+- [Contribution guide](#contribution-guide)
 
-**Responder** - The boundary which passes request parameters from the framework to your business logic, then renders a response.\
-**Operation** - Service implementation which executes one side effect, and can undo it.\
-**Workflow** - Service orchestration that composes complex, multi step processes.\
-**View** - Presentation objects which can render multiple formats.
+## Overview
+
+Nucleus Core defines a boundary between your business logic, and a framework.
+
+## Components
+
+**Responder** - The boundary which passes request parameters to your business logic, then renders a response (requires framework request, and response adapaters).\
+**Operations** - Service implementation that executes one side effect.\
+**Workflows** - Service orchestration which composes complex, multi stage processes.\
+**Views** - Presentation objects which render multiple formats.
+
+## Supported Frameworks
+
+These packages implement request, and response adapters for their respective framework.
+
+- [nucleus-rails](https://rubygems.org/gems/nucleus-rails).
 
 ## Getting started
 
@@ -19,13 +39,13 @@ Nucleus Core is the boundary between your business logic, and a framework.
 $ gem install nuclueus-core
 ```
 
-2. Initialize `NucleusCore`
+2. Initialize, and configure `NucleusCore`
 
 ```ruby
 require "nucleus-core"
 
 NucleusCore.configure do |config|
-  config.logger = Rails.logger
+  config.logger = Logger.new($stdout)
   config.default_response_format = :json
   config.exceptions = {
     not_found: ActiveRecord::RecordNotFound,
@@ -36,34 +56,70 @@ NucleusCore.configure do |config|
 end
 ```
 
-3. Create a class that implements all of the `render_<format>` methods.
+3. Create a class that implements the rendering methods below. Class, or instance methods can be used, make sure to initialize the responder accordingly.
 
 ```ruby
 class ResponderAdapter
+  # entity: Nucleus::ResponseAdapter
+
   def render_json(entity)
-    render(json: entity.content, status: entity.status)
   end
 
   def render_xml(entity)
-    render(xml: entity.content, status: entity.status)
   end
 
   def render_pdf(entity)
   end
-end
-```
 
-4. Create a class that implements a `call` method that formats your request params into a hash.
+  def render_csv(entity)
+  end
 
-```ruby
-class RequestAdapter
-  def call(format, params, ...)
-    { format: format, parameters: params, ...}
+  def render_text(entity)
+  end
+
+  def render_nothing(entity)
   end
 end
 ```
 
-4. Implement, and orchestrate your business logic using Operations, and Workflows.
+4. Create a class that implements `call` which returns a hash of request details. `format` and `parameters` are required, but there others can be returned.
+
+```ruby
+class RequestAdapter
+  def call(args={})
+    { format: args[:format], parameters: args[:params], ...}
+  end
+end
+```
+
+4. Implement your business logic using Operations, and orchestrate more complex proceedures with Workflows.
+
+`operations/fetch_order.rb`
+
+```ruby
+class Operations::FetchOrder < NucleusCore::Operation
+  def call
+    context.order = find_order(context.id)
+  rescue NucleusCore::NotFound => e
+    context.fail!(e.message, exception: e)
+  end
+end
+```
+
+`operations/apply_order_discount.rb`
+
+```ruby
+class Operations::ApplyOrderDiscount < NucleusCore::Operation
+  def call
+    discount = context.discount || 0.25
+    order = update_order(context.order, discount: discount)
+
+    context.order = order
+  rescue NucleusCore::NotFound, NucleusCore::Unprocessable => e
+    context.fail!(e.message, exception: e)
+  end
+end
+```
 
 `workflows/fulfill_order.rb`
 
@@ -95,35 +151,7 @@ class Workflows::FulfillOrder < NucleusCore::Workflow
 end
 ```
 
-`operations/fetch_order.rb`
-
-```ruby
-class Operations::FetchOrder < NucleusCore::Operation
-  def call
-    # Data access is up to you.
-    context.order = find_order(context.id)
-  rescue NucleusCore::NotFound => e
-    context.fail!(e.message, exception: e)
-  end
-end
-```
-
-`operations/apply_order_discount.rb`
-
-```ruby
-class Operations::ApplyOrderDiscount < NucleusCore::Operation
-  def call
-    # Persistance is up to you.
-    order = update_order(context.order, discount: 0.25)
-
-    context.order = order
-  rescue NucleusCore::NotFound, NucleusCore::Unprocessable => e
-    context.fail!(e.message, exception: e)
-  end
-end
-```
-
-5. Define your views, and responses.
+5. Define your view, and it's responses.
 
 `views/order.rb`
 
@@ -148,12 +176,14 @@ class Views::Order < NucleusCore::View
   end
 
   def pdf_response
-    NucleusCore::PdfResponse.new(content: generate_pdf(id, price, paid))
+    pdf = generate_pdf(id, price, paid)
+
+    NucleusCore::PdfResponse.new(content: pdf)
   end
 end
 ```
 
-4. Then initialize the responder, and compose your business logic in the responder#execute method.
+4. Initialize the responder with your adapters, then call your business logic, and return a view.
 
 `controllers/orders_controller.rb`
 
@@ -161,13 +191,18 @@ end
 class OrdersController
   before_action do
     @responder = Nucleus::Responder.new(
-      response_adapter: ResponseAdapter,
-      request_adapter: RequestAdapter
+      response_adapter: ResponseAdapter.new,
+      request_adapter: RequestAdapter.new
     )
+
+    @request = {
+      format: request.format,
+      parameters: request.params
+    }
   end
 
   def create
-    @responder.execute(request) do |req|
+    @responder.execute(@request) do |req|
       context, _process = Workflows::FulfillOrder.call(context: req.parameters)
 
       return Views::Order.new(order: context.order) if context.success?
@@ -180,22 +215,7 @@ end
 
 5. Then tell us about it!
 
-### Supported Frameworks
-
-- [nucleus-rails](https://rubygems.org/gems/nucleus-rails)
-
 ---
-
-- [Quick start](#quick-start)
-- [Best practixes](#best-practices)
-- [Support](#support)
-- [License](#license)
-- [Code of conduct](#code-of-conduct)
-- [Contribution guide](#contribution-guide)
-
-## Best practices
-
-- Favour composeablility over coupling. In other words, no not use policies, or views in operations/workflows to keep access, and rendering outside of your business cases.
 
 ## Support
 
