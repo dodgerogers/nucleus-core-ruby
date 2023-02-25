@@ -2,14 +2,6 @@ require "ostruct"
 require "json"
 require "set"
 
-extensions = File.join(__dir__, "nucleus_core", "extensions", "*.rb")
-exceptions = File.join(__dir__, "nucleus_core", "exceptions", "*.rb")
-views = File.join(__dir__, "nucleus_core", "views", "*.rb")
-response_adapters = File.join(__dir__, "nucleus_core", "response_adapters", "*.rb")
-[extensions, exceptions, views, response_adapters].each do |dir|
-  Dir[dir].sort.each { |f| require f }
-end
-
 module NucleusCore
   autoload :CLI, "nucleus_core/cli"
   autoload :VERSION, "nucleus_core/version"
@@ -17,7 +9,15 @@ module NucleusCore
   autoload :Workflow, "nucleus_core/workflow"
   autoload :Responder, "nucleus_core/responder"
   autoload :RequestAdapter, "nucleus_core/request_adapter"
-  autoload :SimpleObject, "nucleus_core/basic_object"
+  autoload :SimpleObject, "nucleus_core/simple_object"
+
+  extensions = File.join(__dir__, "nucleus_core", "extensions", "*.rb")
+  exceptions = File.join(__dir__, "nucleus_core", "exceptions", "*.rb")
+  views = File.join(__dir__, "nucleus_core", "views", "*.rb")
+  response_adapters = File.join(__dir__, "nucleus_core", "response_adapters", "*.rb")
+  [extensions, exceptions, views, response_adapters].each do |dir|
+    Dir[dir].sort.each { |f| require f }
+  end
 
   class Configuration
     attr_accessor :default_response_format, :logger
