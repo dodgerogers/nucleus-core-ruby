@@ -16,7 +16,7 @@
 
 ## Overview
 
-Nucleus Core defines a hard boundary between your business logic, and framework. The goal is for developers to focus on solving the problem, express the solution, and not get stuck in the weeds of framework concerns.
+Nucleus Core defines a hard boundary between your business logic, and framework.
 
 ## Supported Frameworks
 
@@ -26,7 +26,7 @@ Nucleus Core defines a hard boundary between your business logic, and framework.
 
 **Responder** - The boundary which passes request parameters to your business logic, then renders a response.\
 **Operations** - Service implementation that executes one side effect.\
-**Workflows** - Service orchestration which composes complex, multi stage processes.\
+**Workflows** - Service orchestration which composes complex, branching processes.\
 **Views** - Presentation objects which render multiple formats.
 
 ## Getting started
@@ -54,7 +54,7 @@ NucleusCore.configure do |config|
 end
 ```
 
-3. Create a class that implements the methods below. The `(entity)` parameter is a subclass of `Nucleus::ResponseAdapter`.
+3. Create a class that implements the methods below. The parameter is a subclass of `Nucleus::ResponseAdapter`.
 
 ```ruby
 class ResponderAdapter
@@ -78,7 +78,7 @@ class ResponderAdapter
 end
 ```
 
-4. Create a class that implements `call` which returns a hash of request details.
+4. Create a class that implements `call` which returns a hash of request details. Ideally the values are primitives, and not objects from the framework. E.g not `ActionController::StrongParameters`.
 
 ```ruby
 class RequestAdapter
@@ -86,13 +86,12 @@ class RequestAdapter
     {
       format: args[:format],
       parameters: args[:params],
-      ...
     }
   end
 end
 ```
 
-4. Implement your business logic using Operations, and orchestrate more complex proceedures with Workflows.
+5. Implement your business logic using Operations, and orchestrate complex proceedures with Workflows.
 
 `operations/fetch_order.rb`
 
@@ -160,7 +159,7 @@ class Workflows::FulfillOrder < NucleusCore::Workflow
 end
 ```
 
-5. Define your view, and it's responses.
+6. Define your view, and it's responses.
 
 `views/order.rb`
 
@@ -190,7 +189,7 @@ class Views::Order < NucleusCore::View
 end
 ```
 
-4. Initialize `Nucleus::Responder` with your adapters, instantiate a request object with format and parameters, call your business logic, then return a view.
+7. Initialize `Nucleus::Responder` with your adapters, instantiate a request object with format and parameters, call your business logic, then return a view.
 
 `controllers/orders_controller.rb`
 
@@ -219,7 +218,7 @@ class OrdersEndpoint
 end
 ```
 
-5. Then tell us about it!
+8. Then tell us about it!
 
 ---
 
