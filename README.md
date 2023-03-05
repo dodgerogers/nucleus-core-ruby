@@ -54,7 +54,7 @@ NucleusCore.configure do |config|
 end
 ```
 
-3. Create a class that implements the methods below. The single parameter fof each is a subclass of `Nucleus::ResponseAdapter`.
+3. Create a class that implements the methods below. The `(entity)` parameter is a subclass of `Nucleus::ResponseAdapter`.
 
 ```ruby
 class ResponderAdapter
