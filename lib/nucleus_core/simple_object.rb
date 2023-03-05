@@ -6,7 +6,7 @@ module NucleusCore
       @__attributes__ = {}
 
       attrs.each_pair do |key, value|
-        define_singleton_method(key.to_s) do
+        define_singleton_method(key) do
           instance_variable_get("@#{key}")
         end
 

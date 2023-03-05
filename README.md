@@ -16,20 +16,18 @@
 
 ## Overview
 
-Nucleus Core defines a boundary between your business logic, and a framework.
-
-## Components
-
-**Responder** - The boundary which passes request parameters to your business logic, then renders a response (requires framework request, and response adapaters).\
-**Operations** - Service implementation that executes one side effect.\
-**Workflows** - Service orchestration which composes complex, multi stage processes.\
-**Views** - Presentation objects which render multiple formats.
+Nucleus Core defines a hard boundary between your business logic, and framework. The goal is for developers to focus on solving the problem, express the solution, and not get stuck in the weeds of framework concerns.
 
 ## Supported Frameworks
 
-These packages implement request, and response adapters for their respective framework.
-
 - [nucleus-rails](https://rubygems.org/gems/nucleus-rails).
+
+## Components
+
+**Responder** - The boundary which passes request parameters to your business logic, then renders a response.\
+**Operations** - Service implementation that executes one side effect.\
+**Workflows** - Service orchestration which composes complex, multi stage processes.\
+**Views** - Presentation objects which render multiple formats.
 
 ## Getting started
 
@@ -56,12 +54,10 @@ NucleusCore.configure do |config|
 end
 ```
 
-3. Create a class that implements the rendering methods below. Class, or instance methods can be used, make sure to initialize the responder accordingly.
+3. Create a class that implements the methods below. The single parameter fof each is a subclass of `Nucleus::ResponseAdapter`.
 
 ```ruby
 class ResponderAdapter
-  # entity: Nucleus::ResponseAdapter
-
   def render_json(entity)
   end
 
@@ -82,12 +78,16 @@ class ResponderAdapter
 end
 ```
 
-4. Create a class that implements `call` which returns a hash of request details. `format` and `parameters` are required, but there others can be returned.
+4. Create a class that implements `call` which returns a hash of request details.
 
 ```ruby
 class RequestAdapter
   def call(args={})
-    { format: args[:format], parameters: args[:params], ...}
+    {
+      format: args[:format],
+      parameters: args[:params],
+      ...
+    }
   end
 end
 ```
@@ -103,20 +103,29 @@ class Operations::FetchOrder < NucleusCore::Operation
   rescue NucleusCore::NotFound => e
     context.fail!(e.message, exception: e)
   end
+
+  def find_order(id)
+    # find implementation
+  end
 end
 ```
 
-`operations/apply_order_discount.rb`
+`operations/discount_order.rb`
 
 ```ruby
-class Operations::ApplyOrderDiscount < NucleusCore::Operation
+class Operations::DiscountOrder < NucleusCore::Operation
   def call
-    discount = context.discount || 0.25
+    default_discount = 0.25
+    discount = context.discount || default_discount
     order = update_order(context.order, discount: discount)
 
     context.order = order
   rescue NucleusCore::NotFound, NucleusCore::Unprocessable => e
     context.fail!(e.message, exception: e)
+  end
+
+  def update_order(order, attrs={})
+    # update implementation
   end
 end
 ```
@@ -135,7 +144,7 @@ class Workflows::FulfillOrder < NucleusCore::Workflow
     )
     register_node(
       state: :discount_order,
-      operation: Operations::ApplyOrderDiscount,
+      operation: Operations::DiscountOrder,
       signals: { continue: :take_payment }
     )
     register_node(
@@ -176,25 +185,22 @@ class Views::Order < NucleusCore::View
   end
 
   def pdf_response
-    pdf = generate_pdf(id, price, paid)
-
-    NucleusCore::PdfResponse.new(content: pdf)
+    NucleusCore::PdfResponse.new(content: generate_pdf())
   end
 end
 ```
 
-4. Initialize the responder with your adapters, then call your business logic, and return a view.
+4. Initialize `Nucleus::Responder` with your adapters, instantiate a request object with format and parameters, call your business logic, then return a view.
 
 `controllers/orders_controller.rb`
 
 ```ruby
-class OrdersController
-  before_action do
+class OrdersEndpoint
+  def initialize
     @responder = Nucleus::Responder.new(
       response_adapter: ResponseAdapter.new,
       request_adapter: RequestAdapter.new
     )
-
     @request = {
       format: request.format,
       parameters: request.params
