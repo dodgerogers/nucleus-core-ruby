@@ -23,6 +23,7 @@ class TestResponseAdapter
     mock_render(entity)
   end
 
+  # mock response
   def self.mock_render(entity)
     entity
   end

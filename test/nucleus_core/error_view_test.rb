@@ -20,7 +20,7 @@ describe NucleusCore::ErrorView do
     it "implements `json_response`" do
       response = subject.json_response
 
-      assert_equal(NucleusCore::JsonResponse, response.class)
+      assert_equal(:json, response.format)
       assert_equal(404, response.status)
     end
 
@@ -31,7 +31,7 @@ describe NucleusCore::ErrorView do
         view = subject
 
         assert_nil(view.message)
-        assert_equal(:unprocessable_entity, view.status)
+        assert_equal(:internal_server_error, view.status)
         assert_empty(view.errors)
         assert_equal(3, view.to_h.keys.length)
       end

@@ -44,7 +44,7 @@ module NucleusCore
       return render_nothing(context) if context.success?
       return handle_exception(context.exception) if context.exception
 
-      view = NucleusCore::ErrorView.new(message: context.message, status: :unprocessable_entity)
+      view = NucleusCore::ErrorView.new(message: context.message, status: :internal_server_error)
 
       render_view(view)
     end
@@ -61,14 +61,7 @@ module NucleusCore
     def render_response(entity)
       render_headers(entity.headers)
 
-      render_method = {
-        NucleusCore::JsonResponse => :render_json,
-        NucleusCore::XmlResponse => :render_xml,
-        NucleusCore::PdfResponse => :render_pdf,
-        NucleusCore::CsvResponse => :render_csv,
-        NucleusCore::TextResponse => :render_text,
-        NucleusCore::NoResponse => :render_nothing
-      }.fetch(entity.class, nil)
+      render_method = "render_#{request_context.format}"
 
       response_adapter&.send(render_method, entity)
     end

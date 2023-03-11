@@ -7,23 +7,17 @@ describe NucleusCore::Responder do
     it "returns expected response entity" do
       response = subject
 
-      assert(response.is_a?(NucleusCore::JsonResponse))
+      assert_equal(:json, response.format)
     end
 
-    {
-      json: NucleusCore::JsonResponse,
-      xml: NucleusCore::XmlResponse,
-      text: NucleusCore::TextResponse,
-      pdf: NucleusCore::PdfResponse,
-      csv: NucleusCore::CsvResponse
-    }.each do |request_format, view_class|
+    %i[json xml text pdf csv].each do |request_format|
       describe "when #{request_format} request" do
         subject { TestController.new.index(format: request_format) }
 
         it "returns expected response entity" do
           response = subject
 
-          assert(response.is_a?(view_class))
+          assert_equal(request_format, response.format)
         end
       end
     end
@@ -34,7 +28,7 @@ describe NucleusCore::Responder do
       it "renders response in the returned format irrespective to the request format" do
         response = subject
 
-        assert(response.is_a?(NucleusCore::CsvResponse))
+        assert_equal(:csv, response.format)
       end
     end
   end
@@ -46,7 +40,7 @@ describe NucleusCore::Responder do
       it "returns expected response entity" do
         response = subject
 
-        assert(response.is_a?(NucleusCore::JsonResponse))
+        assert_equal(:json, response.format)
         assert_equal(500, response.status)
         assert_equal(:internal_server_error, response.content[:status])
         assert_match("comparison of Symbol with 20 failed", response.content[:message])
@@ -65,7 +59,7 @@ describe NucleusCore::Responder do
           message: "total has reached max",
           errors: []
         }
-        assert(response.is_a?(NucleusCore::JsonResponse))
+        assert_equal(:json, response.format)
         assert_equal(expected_response, response.content)
         assert_equal(422, response.status)
       end
