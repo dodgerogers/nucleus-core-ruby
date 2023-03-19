@@ -4,22 +4,22 @@ class TestSimpleView < NucleusCore::View
   end
 
   def json_response
-    NucleusCore::JsonResponse.new
+    NucleusCore::ResponseAdapter.new(:json, content: to_h)
   end
 
   def xml_response
-    NucleusCore::XmlResponse.new
+    NucleusCore::ResponseAdapter.new(:xml, content: "<xml></xml>")
   end
 
   def pdf_response
-    NucleusCore::PdfResponse.new
+    NucleusCore::ResponseAdapter.new(:pdf)
   end
 
   def csv_response
-    NucleusCore::CsvResponse.new
+    NucleusCore::ResponseAdapter.new(:csv, content: "#{to_h.keys.join(',')}\n#{to_h.values.join(',')}")
   end
 
   def text_response
-    NucleusCore::TextResponse.new
+    NucleusCore::ResponseAdapter.new(:text, content: to_h.values.join(", "))
   end
 end

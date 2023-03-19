@@ -6,9 +6,9 @@
 
 - [Overview](#overview)
 - [Components](#components)
+- [Getting Started](#getting-started)
+- [Implementing Business Logic](#implementing-business-logic)
 - [Supported Frameworks](#supported-frameworks)
-- [Quick start](#quick-start)
-- [Best practices](#best-practices)
 - [Support](#support)
 - [License](#license)
 - [Code of conduct](#code-of-conduct)
@@ -16,28 +16,24 @@
 
 ## Overview
 
-Nucleus Core defines a hard boundary between your business logic, and framework.
-
-## Supported Frameworks
-
-- [nucleus-rails](https://rubygems.org/gems/nucleus-rails).
+Nucleus Core defines a boundary between your business logic and the framework, so you can design your application in isolation of the framework's paradigms.
 
 ## Components
 
-**Responder** - The boundary which passes request parameters to your business logic, then renders a response.\
+**Responder** - The boundary which handles request parameters, encapsulates your business logic, and renders a response.\
+**Views** - Presentation objects which render multiple formats.\
 **Operations** - Service implementation that executes one side effect.\
-**Workflows** - Service orchestration which composes complex, branching processes.\
-**Views** - Presentation objects which render multiple formats.
+**Workflows** - Service orchestration which composes complex processes.
 
 ## Getting started
 
 1. Install the gem
 
-```
+```ruby
 $ gem install nuclueus-core
 ```
 
-2. Initialize, and configure `NucleusCore`
+2. Initialize, and configure
 
 ```ruby
 require "nucleus-core"
@@ -54,10 +50,12 @@ NucleusCore.configure do |config|
 end
 ```
 
-3. Create a class that implements the methods below. The parameter is a subclass of `Nucleus::ResponseAdapter`.
+3. Create a class that implements the methods below to handle rendering for the framework.
 
 ```ruby
 class ResponderAdapter
+  # entity: Nucleus::ResponseAdapter
+
   def render_json(entity)
   end
 
@@ -78,10 +76,12 @@ class ResponderAdapter
 end
 ```
 
-4. Create a class that implements `call` which returns a hash of request details. Ideally the values are primitives, and not objects from the framework. E.g not `ActionController::StrongParameters`.
+4. A single object made available to the business logic via the `RequestAdapter`.
 
 ```ruby
 class RequestAdapter
+  # args: any request parameters
+
   def call(args={})
     {
       format: args[:format],
@@ -91,77 +91,7 @@ class RequestAdapter
 end
 ```
 
-5. Implement your business logic using Operations, and orchestrate complex proceedures with Workflows.
-
-`operations/fetch_order.rb`
-
-```ruby
-class Operations::FetchOrder < NucleusCore::Operation
-  def call
-    context.order = find_order(context.id)
-  rescue NucleusCore::NotFound => e
-    context.fail!(e.message, exception: e)
-  end
-
-  def find_order(id)
-    # find implementation
-  end
-end
-```
-
-`operations/discount_order.rb`
-
-```ruby
-class Operations::DiscountOrder < NucleusCore::Operation
-  def call
-    default_discount = 0.25
-    discount = context.discount || default_discount
-    order = update_order(context.order, discount: discount)
-
-    context.order = order
-  rescue NucleusCore::NotFound, NucleusCore::Unprocessable => e
-    context.fail!(e.message, exception: e)
-  end
-
-  def update_order(order, attrs={})
-    # update implementation
-  end
-end
-```
-
-`workflows/fulfill_order.rb`
-
-```ruby
-class Workflows::FulfillOrder < NucleusCore::Workflow
-  def define
-    start_node(continue: :apply_discount?)
-    register_node(
-      state: :apply_discount?,
-      operation: Operations::FetchOrder,
-      determine_signal: ->(context) { context.order.total > 10 ? :discount : :pay },
-      signals: { discount: :discount_order, pay: :take_payment }
-    )
-    register_node(
-      state: :discount_order,
-      operation: Operations::DiscountOrder,
-      signals: { continue: :take_payment }
-    )
-    register_node(
-      state: :take_payment,
-      operation: ->(context) { context.paid = context.order.pay! },
-      signals: { continue: :completed }
-    )
-    register_node(
-      state: :completed,
-      determine_signal: ->(_) { :wait }
-    )
-  end
-end
-```
-
-6. Define your view, and it's responses.
-
-`views/order.rb`
+5. Define your view, and it's responses.
 
 ```ruby
 class Views::Order < NucleusCore::View
@@ -180,18 +110,16 @@ class Views::Order < NucleusCore::View
       }
     }
 
-    NucleusCore::JsonResponse.new(content: content)
+    NucleusCore::ResponseAdapter.new(format: :json, content: content)
   end
 
   def pdf_response
-    NucleusCore::PdfResponse.new(content: generate_pdf())
+    NucleusCore::ResponseAdapter.new(format: :pdf, content: generate_pdf())
   end
 end
 ```
 
-7. Initialize `Nucleus::Responder` with your adapters, instantiate a request object with format and parameters, call your business logic, then return a view.
-
-`controllers/orders_controller.rb`
+6. Initialize `Nucleus::Responder` with your adapters, instantiate a request object with format and parameters, call your business logic, then return a view.
 
 ```ruby
 class OrdersEndpoint
@@ -201,8 +129,8 @@ class OrdersEndpoint
       request_adapter: RequestAdapter.new
     )
     @request = {
-      format: request.format,
-      parameters: request.params
+      format: framework_req.format,
+      parameters: framework_req.params
     }
   end
 
@@ -218,9 +146,59 @@ class OrdersEndpoint
 end
 ```
 
-8. Then tell us about it!
+6. Then tell us about it!
+
+### Implementing Business Logic
+
+Use `Operations` to define single units of work, and orchestrate multiple units with `Workflows`.
+
+```ruby
+class Operations::FetchOrder < NucleusCore::Operation
+  def call
+    context.order = find_order(context.id)
+  rescue NucleusCore::NotFound => e
+    context.fail!(e.message, exception: e)
+  end
+
+  def find_order(id)
+    # find implementation
+  end
+end
+```
+
+```ruby
+class Workflows::FulfillOrder < NucleusCore::Workflow
+  def define
+    start_node(continue: :apply_discount?)
+    register_node(
+      state: :apply_discount?,
+      operation: Operations::FetchOrder,
+      determine_signal: ->(context) { context.order.total > 10 ? :discount : :pay },
+      signals: { discount: :discount_order, pay: :take_payment }
+    )
+    register_node(
+      state: :discount_order,
+      operation: ->(context) { context.order.discount! },
+      signals: { continue: :take_payment }
+    )
+    register_node(
+      state: :take_payment,
+      operation: ->(context) { context.paid = context.order.pay! },
+      signals: { continue: :completed }
+    )
+    register_node(
+      state: :completed,
+      determine_signal: ->(_) { :wait }
+    )
+  end
+end
+```
 
 ---
+
+## Supported Frameworks
+
+- [nucleus-rails](https://rubygems.org/gems/nucleus-rails).
 
 ## Support
 

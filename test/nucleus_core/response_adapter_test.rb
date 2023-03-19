@@ -11,6 +11,7 @@ describe NucleusCore::ResponseAdapter do
       assert_respond_to(resp, :headers)
       assert_respond_to(resp, :status)
       assert_respond_to(resp, :location)
+      assert_respond_to(resp, :format)
     end
   end
 end
