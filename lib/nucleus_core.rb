@@ -11,6 +11,7 @@ module NucleusCore
   autoload :RequestAdapter, "nucleus_core/request_adapter"
   autoload :ResponseAdapter, "nucleus_core/response_adapter"
   autoload :SimpleObject, "nucleus_core/simple_object"
+  autoload :Policy, "nucleus_core/policy"
 
   extensions = File.join(__dir__, "nucleus_core", "extensions", "*.rb")
   exceptions = File.join(__dir__, "nucleus_core", "exceptions", "*.rb")
