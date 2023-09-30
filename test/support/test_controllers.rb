@@ -1,6 +1,3 @@
-require "securerandom"
-require "ostruct"
-
 # By default this controller NucleusCore::Responder will use an injected
 # ResponseAdapter, see `test/support/configuration` for details.
 class TestController

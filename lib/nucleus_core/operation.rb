@@ -1,5 +1,3 @@
-require "ostruct"
-
 module NucleusCore
   class Operation
     class Context < OpenStruct
