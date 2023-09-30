@@ -16,23 +16,13 @@ module NucleusCore
 
       request_context_attrs = request_adapter&.call(raw_request_context) || {}
       @request_context = NucleusCore::RequestAdapter.new(request_context_attrs)
-      entity = execute_block(@request_context, &block)
+      entity = Utils.execute_block(@request_context, &block)
 
       render_entity(entity)
     rescue Exception => e
       handle_exception(e)
     end
     # rubocop:enable Lint/RescueException:
-
-    # Calling `return` in a block/proc returns from the outer calling scope as well.
-    # Lambdas do not have this limitation. So we convert the proc returned
-    # from a block method into a lambda to avoid 'return' exiting the method early.
-    # https://stackoverflow.com/questions/2946603/ruby-convert-proc-to-lambda
-    def execute_block(request, &block)
-      define_singleton_method(:_proc_to_lambda_, &block)
-
-      method(:_proc_to_lambda_).to_proc.call(request)
-    end
 
     def render_entity(entity)
       return handle_context(entity) if entity.is_a?(NucleusCore::Operation::Context)

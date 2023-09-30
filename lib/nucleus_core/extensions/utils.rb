@@ -85,4 +85,15 @@ class Utils
 
     object.is_a?(Array) ? object : [object]
   end
+
+  # Calling `return` in a block/proc returns from the outer calling scope as well.
+  # Lambdas do not have this limitation. So we convert the proc returned
+  # from a block method into a lambda to avoid 'return' exiting the method early.
+  # https://stackoverflow.com/questions/2946603/ruby-convert-proc-to-lambda
+  def self.execute_block(args=[], &block)
+    proxy_object = Object.new
+    proxy_object.define_singleton_method(:_proc_to_lambda_, &block)
+
+    proxy_object.method(:_proc_to_lambda_).to_proc.call(*args)
+  end
 end
