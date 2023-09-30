@@ -14,9 +14,9 @@ class TestController
     request = init_request(params)
 
     responder.execute(request) do |req|
-      context, _process = SimpleWorkflow.call(context: req.parameters)
+      context, process = SimpleWorkflow.call(context: req.parameters)
 
-      return TestSimpleView.new(total: context.total) if context.success?
+      return TestSimpleView.new(total: context.total, state: process.state) if context.success?
 
       return context
     end

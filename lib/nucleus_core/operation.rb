@@ -57,6 +57,25 @@ module NucleusCore
       operation.context
     end
 
+    def validate_required_args!
+      missing_args = []
+
+      (required_args || []).each do |arg|
+        missing_args.push(arg) unless context.respond_to?(arg)
+      end
+
+      yield missing_args if block_given?
+
+      return if missing_args.empty?
+
+      context.fail!("Missing required arguments: #{missing_args.join(', ')}")
+    end
+
+    # Override these methods
+    def required_args
+      nil
+    end
+
     def call
     end
 

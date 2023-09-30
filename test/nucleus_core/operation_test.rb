@@ -30,6 +30,17 @@ describe NucleusCore::Operation do
         assert_instance_of(NucleusCore::Unprocessable, context.exception)
       end
     end
+
+    describe "with missing args" do
+      subject { TestOperation.call }
+
+      it "returns a failed context with message" do
+        context = subject
+
+        refute_predicate(context, :success?)
+        assert_equal("Missing required arguments: total", context.message)
+      end
+    end
   end
 
   describe "self.rollback" do
