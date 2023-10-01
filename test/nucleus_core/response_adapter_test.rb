@@ -13,5 +13,19 @@ describe NucleusCore::ResponseAdapter do
       assert_respond_to(resp, :location)
       assert_respond_to(resp, :format)
     end
+
+    describe "when an unsupported format" do
+      before do
+        @format = :unknown
+      end
+
+      subject { NucleusCore::ResponseAdapter.new(@format) }
+
+      it "should raise NoMethodError" do
+        exception = assert_raises(ArgumentError) { subject }
+
+        assert_equal("unsupported format `unknown`", exception.message)
+      end
+    end
   end
 end

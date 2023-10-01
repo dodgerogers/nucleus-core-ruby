@@ -1,5 +1,5 @@
-# Rack::Utils patch for status code
 class Utils
+  # patch for `status_code` from Rails
   HTTP_STATUS_CODES = {
     100 => "Continue",
     101 => "Switching Protocols",
@@ -80,6 +80,7 @@ class Utils
     status.to_i
   end
 
+  # patch for Array.wrap(value)
   def self.wrap(object)
     return [] if object.nil?
 

@@ -8,7 +8,9 @@ class TestOperation < NucleusCore::Operation
 
     context.total ||= 0
 
-    raise NucleusCore::Unprocessable, "total has reached max" if context.total >= 20
+    raise NucleusCore::Unprocessable, "total has reached max" if context.total > 20
+
+    isolate(changes: context.total)
 
     context.total += 1
   rescue NucleusCore::Unprocessable => e
@@ -16,6 +18,7 @@ class TestOperation < NucleusCore::Operation
   end
 
   def rollback
-    context.total -= 1
+    change = isolated.fetch(:changes, 0)
+    context.total -= change
   end
 end

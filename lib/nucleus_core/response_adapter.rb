@@ -4,6 +4,10 @@ class NucleusCore::ResponseAdapter < NucleusCore::SimpleObject
   def initialize(res_format=nil, attrs={})
     res_format ||= NucleusCore.configuration.default_response_format
     attrs_method = "#{res_format}_attributes"
+    format_supported = respond_to?(attrs_method, true)
+
+    raise ArgumentError, "unsupported format `#{res_format}`" unless format_supported
+
     res_format_attrs = send(attrs_method, attrs)
 
     attributes = default_attrs

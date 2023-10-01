@@ -72,14 +72,24 @@ module NucleusCore
     end
 
     # Override these methods
-    def required_args
-      nil
+    def required_args; end
+    def call; end
+    def rollback; end
+
+    private
+
+    def isolated
+      context[isolated_ctx_name]
     end
 
-    def call
+    def isolated_ctx_name
+      self.class.name
     end
 
-    def rollback
+    def isolate(hash={})
+      context[isolated_ctx_name] ||= {}
+
+      context[isolated_ctx_name].merge!(hash)
     end
   end
 end

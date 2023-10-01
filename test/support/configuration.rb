@@ -3,7 +3,8 @@ require "logger"
 class NucleusCoreTestConfiguration
   def self.init!
     NucleusCore.configure do |config|
-      config.logger = ::Logger.new($stdout)
+      # Uncomment for debugging
+      # config.logger = ::Logger.new($stdout)
       config.default_response_format = :json
       config.exceptions = {
         bad_request: NotImplementedError,
