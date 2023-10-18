@@ -18,7 +18,7 @@
 
 NucleusCore defines a boundary such that business logic can be expressed independently from the framework's paradigms.
 
-The components in NucleusCore are oriented around deconstructing any request into the following responsibilties:
+NucleusCore is oriented around the idea that any request can be deconstructed into the following responsibilties, and has components to directly or indirectly support this:
   - Authentication
   - Authorization
   - Executing a business process
@@ -32,7 +32,7 @@ The components in NucleusCore are oriented around deconstructing any request int
 **NucleusCore::Operation** - Service implementation, executes a single use case and can rollback any side effects.\
 **NucleusCore::Workflow** - Service orchestration, composes multi-stage, divergent operations.\
 **NucleusCore::Repository** - Data access, conceals the complexity of interacting with data sources from the caller.\
-**NucleusCore::View** - Presentation objects, render to multiple formats.\
+**NucleusCore::View** - Presentation objects, render to multiple formats.
 
 ## Supported Frameworks
 
