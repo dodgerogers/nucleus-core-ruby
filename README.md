@@ -18,8 +18,7 @@
 
 NucleusCore defines a boundary such that business logic can be expressed independently from the framework's paradigms.
 
-NucleusCore is oriented around the idea that any request can be deconstructed into the following responsibilties, and has components to directly or indirectly support this:
-  - Authentication
+NucleusCore is oriented around the idea that any request can be deconstructed into the following responsibilties, and has components to support this:
   - Authorization
   - Executing a business process
   - Accessing or mutating data
