@@ -90,7 +90,7 @@ class Utils
   # Lambdas do not have this limitation. So we convert the proc returned
   # from a block method into a lambda to avoid 'return' exiting the method early.
   # https://stackoverflow.com/questions/2946603/ruby-convert-proc-to-lambda
-  def self.execute_block(args=[], &block)
+  def self.capture(args=[], &block)
     proxy_object = Object.new
     proxy_object.define_singleton_method(:_proc_to_lambda_, &block)
 

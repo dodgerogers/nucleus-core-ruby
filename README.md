@@ -16,11 +16,11 @@
 
 ## Overview
 
-A colleague once drew the following diagram to show how business logic should be separated from the framework.
+A colleague drew this diagram to show how business logic should be separated from the framework.
 
 ![Separating business logic from the framework](doc/images/readme.png)
 
-This sounded great but was very oblique to translate into code. `Nucleus-Core` is a way to do just that, and is oriented around the idea that the framework is responsible for receiving requests and rendering responses, with business logic being everything in between (authentication, authorization, service orchestration, data access, and what to render).
+This sounded great but was oblique to translate into code, `Nucleus-Core` aims to provide some guidelines. Let the framework handle requests and render responses from/to the medium it serves, and business logic is everything else in between written in pure ruby (authentication, authorization, service orchestration, data access, and what to output).
 
 ## Components
 
@@ -67,7 +67,22 @@ NucleusCore.configure do |config|
 end
 ```
 
-3. Create a class that implements the methods below.
+3. Create a `RequestAdapter` class to define what paramaters your business logic has access to. This object is the yielded argument in `Responder.execute(&block)`.
+
+```ruby
+class RequestAdapter
+  def call(args={})
+    {
+      format: args[:format],
+      parameters: args[:params],
+      cookies: args[:cookies],
+      any: 'parameter'
+    }
+  end
+end
+```
+
+4. Create a `ResponderAdapter` class which defines and implements the following methods.
 
 ```ruby
 class ResponderAdapter
@@ -92,22 +107,7 @@ class ResponderAdapter
 end
 ```
 
-4. A `NucleusCore::RequestAdapter` object is yielded by the `Responder.execute` method.
-
-```ruby
-class RequestAdapter
-  def call(args={})
-    {
-      format: args[:format],
-      parameters: args[:params],
-      cookies: args[:cookies],
-      any: 'parameters you choose...'
-    }
-  end
-end
-```
-
-5. Define your view and it's responses (`json` is already defined).
+5. Define your view and it's responses (`json` is defined by default).
 
 ```ruby
 class Views::Order < NucleusCore::View
@@ -244,7 +244,7 @@ class FulfillOrder < NucleusCore::Workflow
     )
     register_node(
       state: :take_payment,
-      operation: ->(context) { context.paid = context.order.pay! },
+      operation: ProcessOrderPayment,
       signals: { continue: :completed }
     )
     register_node(

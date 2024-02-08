@@ -16,7 +16,7 @@ describe NucleusCore::Repository do
       end
     end
 
-    describe "when an exception is raise" do
+    describe "when an exception is raised" do
       it "returns expected result object" do
         id = 3
         result = @repo.find(id)

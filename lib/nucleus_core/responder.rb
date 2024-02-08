@@ -16,7 +16,7 @@ module NucleusCore
 
       request_context_attrs = request_adapter&.call(raw_request_context) || {}
       @request_context = NucleusCore::RequestAdapter.new(request_context_attrs)
-      entity = Utils.execute_block(@request_context, &block)
+      entity = Utils.capture(@request_context, &block)
 
       render_entity(entity)
     rescue Exception => e
@@ -41,11 +41,11 @@ module NucleusCore
 
     def render_view(view)
       format_render_method = "#{request_context.format}_response".to_sym
-      response_object = view.send(format_render_method) if view.respond_to?(format_render_method)
+      response_adapter = view.send(format_render_method) if view.respond_to?(format_render_method)
 
-      raise NucleusCore::BadRequest, "`#{request_context.format}` is not supported" if response_object.nil?
+      raise NucleusCore::BadRequest, "`#{request_context.format}` is not supported" if response_adapter.nil?
 
-      render_response_adapter(response_object)
+      render_response_adapter(response_adapter)
     end
 
     def render_response_adapter(entity)
@@ -81,9 +81,9 @@ module NucleusCore
         :not_found
       when NucleusCore::BadRequest, *exceptions.bad_request
         :bad_request
-      when NucleusCore::NotAuthorized, *exceptions.forbidden
+      when NucleusCore::Unauthorized, *exceptions.forbidden
         :forbidden
-      when NucleusCore::UnAuthenticated, *exceptions.unauthorized
+      when NucleusCore::NotAuthenticated, *exceptions.unauthorized
         :unauthorized
       when NucleusCore::Unprocessable, *exceptions.unprocessable
         :unprocessable_entity

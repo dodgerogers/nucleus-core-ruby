@@ -14,7 +14,7 @@ module NucleusCore
         name = Utils.wrap(policy_method_and_args).first
         message = "You do not have access to `#{name}`"
 
-        raise NucleusCore::NotAuthorized, message
+        raise NucleusCore::Unauthorized, message
       end
     end
   end
