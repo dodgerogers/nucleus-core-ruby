@@ -20,7 +20,7 @@ describe NucleusCore::Policy do
       it "returns true" do
         policy_method = :read?
         policy_method_with_args = [:even?, 1, 4]
-        exception = assert_raises(NucleusCore::NotAuthorized) do
+        exception = assert_raises(NucleusCore::Unauthorized) do
           assert(@policy.enforce!(policy_method, policy_method_with_args))
         end
 

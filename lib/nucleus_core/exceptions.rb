@@ -1,8 +1,8 @@
 module NucleusCore
   class BaseException < StandardError; end
-  class BadRequest < NucleusCore::BaseException; end
-  class UnAuthenticated < NucleusCore::BaseException; end
-  class NotAuthorized < NucleusCore::BaseException; end
-  class NotFound < NucleusCore::BaseException; end
-  class Unprocessable < NucleusCore::BaseException; end
+  class BadRequest < BaseException; end
+  class NotAuthenticated < BaseException; end
+  class Unauthorized < BaseException; end
+  class NotFound < BaseException; end
+  class Unprocessable < BaseException; end
 end
