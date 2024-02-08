@@ -13,34 +13,38 @@ module NucleusCore
   autoload :SimpleObject, "nucleus_core/simple_object"
   autoload :Policy, "nucleus_core/policy"
   autoload :Repository, "nucleus_core/repository"
+  autoload :View, "nucleus_core/view"
 
   extensions = File.join(__dir__, "nucleus_core", "extensions", "*.rb")
-  exceptions = File.join(__dir__, "nucleus_core", "exceptions", "*.rb")
-  views = File.join(__dir__, "nucleus_core", "views", "*.rb")
-  [extensions, exceptions, views].each do |dir|
+  exceptions = File.join(__dir__, "nucleus_core", "exceptions.rb")
+  [extensions, exceptions].each do |dir|
     Dir[dir].sort.each { |f| require f }
   end
 
   class Configuration
     attr_accessor :default_response_format, :logger
-    attr_reader :exceptions
-
-    ERROR_STATUSES = %i[not_found bad_request unauthorized unprocessable].freeze
+    attr_reader :request_exceptions, :data_access_exceptions
 
     def initialize
       @logger = nil
-      @exceptions = format_exceptions
+      @request_exceptions = format_request_exceptions
+      @data_access_exceptions = []
       @default_response_format = :json
     end
 
-    def exceptions=(args={})
-      @exceptions = format_exceptions(args)
+    def data_access_exceptions=(exceptions=[])
+      @data_access_exceptions = exceptions
+    end
+
+    def request_exceptions=(args={})
+      @request_exceptions = format_request_exceptions(args)
     end
 
     private
 
-    def format_exceptions(args={})
-      exceptions = ERROR_STATUSES
+    def format_request_exceptions(args={})
+      errors = %i[not_found bad_request unauthorized forbidden unprocessable]
+      exceptions = errors
         .reduce({}) { |acc, name| acc.merge(name => nil) }
         .merge(args)
         .transform_values { |values| Utils.wrap(values) }

@@ -4,9 +4,7 @@ module NucleusCore
   class RequestAdapter < NucleusCore::SimpleObject
     def initialize(attrs=nil)
       attrs ||= {}
-      attributes = defaults
-        .merge(attrs)
-        .slice(*defaults.keys)
+      attributes = defaults.merge(attrs)
 
       super(attributes)
     end
@@ -15,8 +13,7 @@ module NucleusCore
 
     def defaults
       {
-        format: NucleusCore.configuration.default_response_format,
-        parameters: {}
+        format: NucleusCore.configuration.default_response_format
       }
     end
   end

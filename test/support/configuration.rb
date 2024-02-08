@@ -5,11 +5,13 @@ class NucleusCoreTestConfiguration
     NucleusCore.configure do |config|
       config.logger = ::Logger.new($stdout)
       config.default_response_format = :json
-      config.exceptions = {
+      config.data_access_exceptions = [IOError]
+      config.request_exceptions = {
         bad_request: NotImplementedError,
+        unauthorized: SecurityError,
+        forbidden: NameError,
         not_found: LoadError,
-        unprocessable: RuntimeError,
-        unauthorized: SecurityError
+        unprocessable: RuntimeError
       }
     end
   end
