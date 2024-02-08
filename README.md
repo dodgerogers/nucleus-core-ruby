@@ -1,7 +1,7 @@
 # Nucleus Core
 
 [![Gem Version](https://badge.fury.io/rb/nucleus-core.svg)](https://rubygems.org/gems/nucleus-core)
-[![Circle](https://circleci.com/gh/dodgerogers/nucleus-core/tree/main.svg?style=shield)](https://app.circleci.com/pipelines/github/dodgerogers/nucleus-core?branch=main)
+[![Circle](https://circleci.com/gh/dodgerogers/nucleus-core-ruby/tree/main.svg?style=shield)](https://app.circleci.com/pipelines/github/dodgerogers/nucleus-core-ruby?branch=main)
 [![Code Climate](https://codeclimate.com/github/dodgerogers/nucleus-core/badges/gpa.svg)](https://codeclimate.com/github/dodgerogers/nucleus-core)
 
 - [Overview](#overview)
@@ -16,13 +16,11 @@
 
 ## Overview
 
-NucleusCore defines a boundary such that business logic can be expressed independently from the framework's paradigms.
+A colleague once drew the following diagram to show how business logic should be separated from the framework.
 
-NucleusCore is oriented around the idea that any request can be deconstructed into the following responsibilties, and has components to support this:
-  - Authorization
-  - Executing a business process
-  - Accessing or mutating data
-  - Rendering a response
+![Separating business logic from the framework](doc/images/readme.png)
+
+This sounded great but was very oblique to translate into code. `Nucleus-Core` is a way to do just that, and is oriented around the idea that the framework is responsible for receiving requests and rendering responses, with business logic being everything in between (authentication, authorization, service orchestration, data access, and what to render).
 
 ## Components
 
@@ -31,7 +29,7 @@ NucleusCore is oriented around the idea that any request can be deconstructed in
 **NucleusCore::Operation** - Service implementation, executes a single use case and can rollback any side effects.\
 **NucleusCore::Workflow** - Service orchestration, composes multi-stage, divergent operations.\
 **NucleusCore::Repository** - Data access, conceals the complexity of interacting with data sources from the caller.\
-**NucleusCore::View** - Presentation objects, render to multiple formats.
+**NucleusCore::View** - Presentation objects, capable of rendering multiple formats.
 
 ## Supported Frameworks
 
@@ -54,11 +52,17 @@ require "nucleus-core"
 NucleusCore.configure do |config|
   config.logger = Logger.new($stdout)
   config.default_response_format = :json
-  config.exceptions = {
-    not_found: ActiveRecord::RecordNotFound,
-    unprocessible: [ActiveRecord::RecordInvalid, ActiveRecord::RecordNotSaved],
-    bad_request: Apipie::ParamError,
-    unauthorized: Pundit::NotAuthorizedError
+  config.data_access_exceptions = [
+    RecordNotFound,
+    RecordInvalid,
+    RecordNotSaved
+  ]
+  config.request_exceptions = {
+    not_found: RecordNotFound,
+    unprocessible: [RecordInvalid, RecordNotSaved],
+    bad_request: ArgumentError,
+    forbidden: AuthorizationException,
+    unauthorized: AuthenticationException
   }
 end
 ```
@@ -67,7 +71,7 @@ end
 
 ```ruby
 class ResponderAdapter
-  # entity is an instance of `Nucleus::ResponseAdapter`
+  # entity: `<Nucleus::ResponseAdapter>`
   def render_json(entity)
   end
 
@@ -88,7 +92,7 @@ class ResponderAdapter
 end
 ```
 
-4. A `NucleusCore::RequestAdapter` object is yielded by the `Responder.execute` method by configuring a `RequestAdapter`. The properties of this object are completely up to your specification.
+4. A `NucleusCore::RequestAdapter` object is yielded by the `Responder.execute` method.
 
 ```ruby
 class RequestAdapter
@@ -97,20 +101,20 @@ class RequestAdapter
       format: args[:format],
       parameters: args[:params],
       cookies: args[:cookies],
-      anything: '...'
+      any: 'parameters you choose...'
     }
   end
 end
 ```
 
-5. Define your view and it's responses.
+5. Define your view and it's responses (`json` is already defined).
 
 ```ruby
 class Views::Order < NucleusCore::View
   def initialize(order, process)
     attributes = {}.tap do |attrs|
       attrs[:id] = order.id
-      attrs[:price] = "$#{order.total}.00"
+      attrs[:price] = "$#{order.total}"
       attrs[:paid] = order.paid
       attrs[:created_at] = order.created_at
       attrs[:state] = process.state

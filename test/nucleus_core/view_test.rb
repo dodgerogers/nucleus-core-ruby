@@ -4,7 +4,11 @@ describe NucleusCore::View do
   subject { NucleusCore::View.new(property: "value") }
 
   describe "#initialize" do
-    it "is a subclass of SimpleObject" do
+    it "exposes expected attributes" do
+      assert_equal("value", subject.property)
+    end
+
+    it "has expected subclass" do
       assert_equal(NucleusCore::SimpleObject, NucleusCore::View.superclass)
     end
   end

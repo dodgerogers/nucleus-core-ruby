@@ -1,3 +1,4 @@
+require "nucleus_core/simple_object"
 require "nucleus_core/response_adapter"
 
 class NucleusCore::View < NucleusCore::SimpleObject

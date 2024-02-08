@@ -27,7 +27,7 @@ module NucleusCore
     def render_entity(entity)
       return handle_context(entity) if entity.is_a?(NucleusCore::Operation::Context)
       return render_view(entity) if subclass_of(entity, NucleusCore::View)
-      return render_response(entity) if subclass_of(entity, NucleusCore::ResponseAdapter)
+      return render_response_adapter(entity) if subclass_of(entity, NucleusCore::ResponseAdapter)
     end
 
     def handle_context(context)
@@ -40,15 +40,15 @@ module NucleusCore
     end
 
     def render_view(view)
-      render_to_format = "#{request_context.format}_response".to_sym
-      format_response = view.send(render_to_format) if view.respond_to?(render_to_format)
+      format_render_method = "#{request_context.format}_response".to_sym
+      response_object = view.send(format_render_method) if view.respond_to?(format_render_method)
 
-      raise NucleusCore::BadRequest, "`#{request_context.format}` is not supported" if format_response.nil?
+      raise NucleusCore::BadRequest, "`#{request_context.format}` is not supported" if response_object.nil?
 
-      render_response(format_response)
+      render_response_adapter(response_object)
     end
 
-    def render_response(entity)
+    def render_response_adapter(entity)
       render_headers(entity.headers)
 
       render_method = "render_#{request_context.format}"
@@ -57,7 +57,7 @@ module NucleusCore
     end
 
     def handle_exception(exception)
-      logger(exception)
+      logger(exception, :error)
 
       status = exception_to_status(exception)
       view = NucleusCore::ErrorView.new(message: exception.message, status: status)
@@ -74,7 +74,7 @@ module NucleusCore
     end
 
     def exception_to_status(exception)
-      exceptions = NucleusCore.configuration.exceptions
+      exceptions = NucleusCore.configuration.request_exceptions
 
       case exception
       when NucleusCore::NotFound, *exceptions.not_found
@@ -83,6 +83,8 @@ module NucleusCore
         :bad_request
       when NucleusCore::NotAuthorized, *exceptions.forbidden
         :forbidden
+      when NucleusCore::UnAuthenticated, *exceptions.unauthorized
+        :unauthorized
       when NucleusCore::Unprocessable, *exceptions.unprocessable
         :unprocessable_entity
       else
