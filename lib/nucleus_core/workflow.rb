@@ -15,30 +15,36 @@ module NucleusCore
     end
 
     class Process
-      attr_accessor :state, :visited
+      attr_accessor :state, :visited, :repository, :persistance_method
 
-      def initialize(state)
+      def initialize(state, opts={})
         @state = state
         @visited = []
+        @repository = opts[:repository]
+        @persistance_method = opts[:persistance_method]
       end
 
-      def visit(state)
+      def persist(state)
+        config = NucleusCore.configuration
+        repo = repository || config.workflow_process_repository
+        method_name = persistance_method || config.workflow_process_persistance_method
+        attemp_persist = repo && method_name
+        persisted = repo&.send(method_name, self, state: state) != false
+
+        return false if attemp_persist && !persisted
+
         @state = state
         @visited.push(state)
+
+        true
+      rescue StandardError
+        false
       end
     end
 
-    # States
-    ###########################################################################
     INITIAL_STATE = :initial
-
-    # Signals
-    ###########################################################################
     CONTINUE = :continue
     WAIT = :wait
-
-    # Node statuses
-    ###########################################################################
     OK = :ok
     FAILED = :failed
 
@@ -52,10 +58,13 @@ module NucleusCore
       init_nodes
     end
 
-    def register_node(attrs={})
-      node = Node.new(attrs)
+    def register_node(node_attrs={})
+      node = Node.new(node_attrs)
+      state = node.state
 
-      @nodes[node.state] = node
+      raise ArgumentError.new(message: "state `#{state}` is already defined") if nodes.key(state)
+
+      nodes[state] = node
     end
 
     def start_node(signals={})
@@ -68,7 +77,6 @@ module NucleusCore
       define
     end
 
-    # Override this method to draw the workflow graph
     def define
     end
 
@@ -102,6 +110,7 @@ module NucleusCore
       raise ArgumentError, "#{self.class}: more than one start node detected" if start_nodes > 1
     end
 
+    # rubocop:disable Metrics/MethodLength
     def execute(signal=nil)
       signal ||= CONTINUE
       current_state = process.state
@@ -115,7 +124,11 @@ module NucleusCore
 
         break if status == FAILED
 
-        process.visit(current_node.state)
+        if process.persist(current_node.state) == false
+          message = "#{self.class.name} failed to persist process state: `#{current_node.state}`"
+          context.fail!(message)
+        end
+
         current_node = fetch_node(next_signal)
 
         break if next_signal == WAIT
@@ -127,6 +140,7 @@ module NucleusCore
     rescue StandardError => e
       fail_context(@context, e)
     end
+    # rubocop:enable Metrics/MethodLength
 
     private
 

@@ -71,8 +71,45 @@ describe NucleusCore::Workflow do
         context, process = subject
 
         refute_predicate(context, :success?)
-        assert_equal("worfkflow error!", context.message)
+        assert_match(/workflow error!/, context.message)
         assert_equal(:initial, process.state)
+      end
+    end
+
+    describe "when persisting the workflow process" do
+      before do
+        @process = NucleusCore::Workflow::Process.new(
+          :initial,
+          repository: TestRepository,
+          persistance_method: :persist_process
+        )
+      end
+
+      describe "and it succeeds" do
+        it "returns the expected context" do
+          context, process = subject
+
+          assert_predicate(context, :success?)
+          assert_equal(:stopped, process.state)
+        end
+      end
+
+      describe "and it fails" do
+        before do
+          @process = NucleusCore::Workflow::Process.new(
+            :initial,
+            repository: TestRepository,
+            persistance_method: :failing_persist_process
+          )
+        end
+
+        it "fails the context" do
+          context, process = subject
+
+          refute_predicate(context, :success?)
+          assert_match(/SimpleWorkflow failed to persist process state: `started`/, context.message)
+          assert_equal(:initial, process.state)
+        end
       end
     end
 
@@ -85,9 +122,9 @@ describe NucleusCore::Workflow do
         context, process = subject
 
         refute_predicate(context, :success?)
-        assert_equal("Unhandled exception FailingWorkflow: not found", context.message)
+        assert_match(/Unhandled exception FailingWorkflow: not found/, context.message)
         assert(context.exception.is_a?(NucleusCore::NotFound))
-        assert_equal("not found", context.exception.message)
+        assert_match(/not found/, context.exception.message)
         assert_equal(:initial, process.state)
       end
     end

@@ -27,7 +27,7 @@ class FailingWorkflow < NucleusCore::Workflow
     start_node(continue: :failed, raise_exception: :unhandled_exception)
     register_node(
       state: :failed,
-      operation: ->(context) { context.fail!("worfkflow error!") },
+      operation: ->(context) { context.fail!("workflow error!") },
       signals: { continue: :completed }
     )
     register_node(

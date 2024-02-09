@@ -16,19 +16,19 @@
 
 ## Overview
 
-A colleague drew this diagram to show how business logic should be separated from the framework.
+A colleague drew this diagram showing how business logic 'should' be separated from the framework, which seemed simple to understand but difficult to execute.\
 
 ![Separating business logic from the framework](doc/images/readme.png)
 
-This sounded great but was oblique to translate into code, `Nucleus-Core` aims to provide some guidelines. Let the framework handle requests and render responses from/to the medium it serves, and business logic is everything else in between written in pure ruby (authentication, authorization, service orchestration, data access, and what to output).
+`Nucleus-Core` is a way to translate this into code. It prescribes that the framework handles requests and rendering responses, then business logic is everything else in-between.
 
 ## Components
 
 **NucleusCore::Responder** - The boundary which passes request parameters to your business logic, then renders a response.\
 **NucleusCore::Policy** - Authorization objects.\
 **NucleusCore::Operation** - Service implementation, executes a single use case and can rollback any side effects.\
-**NucleusCore::Workflow** - Service orchestration, composes multi-stage, divergent operations.\
-**NucleusCore::Repository** - Data access, conceals the complexity of interacting with data sources from the caller.\
+**NucleusCore::Workflow** - Sequenced service orchestration.\
+**NucleusCore::Repository** - Data access, conceals data source interaction, and returns objects the application owns.\
 **NucleusCore::View** - Presentation objects, capable of rendering multiple formats.
 
 ## Supported Frameworks
@@ -51,6 +51,8 @@ require "nucleus-core"
 
 NucleusCore.configure do |config|
   config.logger = Logger.new($stdout)
+  config.workflow_process_repository = WorkflowProcessRepository
+  config.workflow_process_persistance_method = :save!
   config.default_response_format = :json
   config.data_access_exceptions = [
     RecordNotFound,
@@ -67,42 +69,41 @@ NucleusCore.configure do |config|
 end
 ```
 
-3. Create a `RequestAdapter` class to define what paramaters your business logic has access to. This object is the yielded argument in `Responder.execute(&block)`.
+3. Create a `request adapter` class to define what paramaters your business logic has access to. This object yielded to the method `Responder.execute(&block)`.
 
 ```ruby
 class RequestAdapter
-  def call(args={})
+  def self.call(args={})
     {
       format: args[:format],
       parameters: args[:params],
       cookies: args[:cookies],
-      any: 'parameter'
+      anything: 'value'
     }
   end
 end
 ```
 
-4. Create a `ResponderAdapter` class which defines and implements the following methods.
+4. Create a `response adapter` class which defines and implements the following methods. The single parameter is a instance of `Nucleus::ResponseAdapter`.
 
 ```ruby
-class ResponderAdapter
-  # entity: `<Nucleus::ResponseAdapter>`
-  def render_json(entity)
+class ResponseAdapter
+  def self.render_json(entity)
   end
 
-  def render_xml(entity)
+  def self.render_xml(entity)
   end
 
-  def render_pdf(entity)
+  def self.render_pdf(entity)
   end
 
-  def render_csv(entity)
+  def self.render_csv(entity)
   end
 
-  def render_text(entity)
+  def self.render_text(entity)
   end
 
-  def render_nothing(entity)
+  def self.render_nothing(entity)
   end
 end
 ```
@@ -123,20 +124,24 @@ class Views::Order < NucleusCore::View
     super(attributes)
   end
 
+  def csv_response
+    NucleusCore::ResponseAdapter.new(format: :csv, content: generat_csv(self))
+  end
+
   def pdf_response
-    NucleusCore::ResponseAdapter.new(format: :pdf, content: generate_pdf())
+    NucleusCore::ResponseAdapter.new(format: :pdf, content: generat_pdf(self))
   end
 end
 ```
 
-6. Initialize `Nucleus::Responder` with your adapters, instantiate a request object with format and parameters, call your business logic, then return a view.
+6. Initialize `Nucleus::Responder` with your adapters, instantiate a request object, call your business logic, then return a view.
 
 ```ruby
 class OrdersEndpoint
   def initialize
     @responder = Nucleus::Responder.new(
-      response_adapter: ResponseAdapter.new,
-      request_adapter: RequestAdapter.new
+      response_adapter: ResponseAdapter,
+      request_adapter: RequestAdapter
     )
     @request = {
       format: request.format,
@@ -165,7 +170,7 @@ end
 
 ### How to Implement Business Logic
 
-`Policies` have access to the client, entity, and return a boolean.
+`Policies` have access to the client, entity, and should return a boolean.
 
 ```ruby
 class OrderPolicy < NucleusCore::Policy
@@ -175,13 +180,13 @@ class OrderPolicy < NucleusCore::Policy
 end
 ```
 
-`Repositories` handle interactions with the data source for a resource. The data access library/ORM/client is not important, all that matters is that an object that the application defines is returned.
+`Repositories` handle interactions with the data source for a resource. The data access library/ORM/client is not important, just return an object that the application defines. Repositories return `NucleusCore::Repository::Result` objects which have `entity`, and `exception` attributes. Set `config.workflow_process_repository` and `config.workflow_process_persistance_method` to persist the workflow process state.
 
 ```ruby
 class OrderRepository < NucleusCore::Repository
   def self.find(id)
     execute do
-      resp = Rest::Client.execute("https://myshop.com/#{id}")
+      resp = Rest::Client.execute("https://myshop.com/orders/#{id}", :get)
 
       return DomainModels::Order.new(id: resp[:id])
     end
@@ -189,7 +194,7 @@ class OrderRepository < NucleusCore::Repository
 end
 ```
 
-`Operations` define single units of work, ideally have a single side effect, attach entities and errors to the `context`, and can rollback any side effects. They implement two instance methods - `call` and `rollback` which are passed either a `Hash` or `Nucleus::Operation::Context` object, and are called via their class method namesakes (e.g. `FetchOrder.call(args)`, `FetchOrder.rollback(context)`).
+`Operations` define single units of work, ideally have a single side effect, can attach entities and errors to the `context`, and can rollback any side effects. They implement two instance methods - `call` and `rollback` which are passed either a `Hash` or `Nucleus::Operation::Context` object, and are called via their class method namesakes (e.g. `FetchOrder.call(args)`, `FetchOrder.rollback(context)`).
 
 ```ruby
 class FetchOrder < NucleusCore::Operation
@@ -225,7 +230,7 @@ class FetchOrder < NucleusCore::Operation
 end
 ```
 
-`Worklflows` define multi-stage, divergant proceedures, and share the same interface as `Operations`. They can be composed of `Operations` or anonymous functions, and are called as such (e.g. `FulfillOrder.call(args)`, `FulfillOrder.rollback(context)`).
+`Worklflows` define multi-stage, divergant proceedures. They can be composed of `Operations` or anonymous functions, and are called as such (e.g. `context, process = FulfillOrder.call(args)`, `FulfillOrder.rollback(context)`).
 
 ```ruby
 class FulfillOrder < NucleusCore::Workflow
