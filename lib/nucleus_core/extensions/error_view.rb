@@ -1,5 +1,5 @@
-require "nucleus_core/response_adapter"
 require "nucleus_core/view"
+require "nucleus_core/view_response"
 
 class NucleusCore::ErrorView < NucleusCore::View
   def initialize(attrs={})
@@ -13,6 +13,6 @@ class NucleusCore::ErrorView < NucleusCore::View
   end
 
   def json_response
-    NucleusCore::ResponseAdapter.new(:json, content: to_h, status: status)
+    NucleusCore::View::Response.new(:json, content: to_h, status: status)
   end
 end

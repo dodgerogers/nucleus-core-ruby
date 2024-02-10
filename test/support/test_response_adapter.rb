@@ -1,30 +1,25 @@
 class TestResponseAdapter
-  def self.render_json(entity)
-    mock_render(entity)
+  def self.json(entity)
+    entity
   end
 
-  def self.render_xml(entity)
-    mock_render(entity)
+  def self.xml(entity)
+    entity
   end
 
-  def self.render_pdf(entity)
-    mock_render(entity)
+  def self.pdf(entity)
+    entity
   end
 
-  def self.render_csv(entity)
-    mock_render(entity)
+  def self.csv(entity)
+    entity
   end
 
-  def self.render_text(entity)
-    mock_render(entity)
+  def self.text(entity)
+    entity
   end
 
-  def self.render_nothing(entity)
-    mock_render(entity)
-  end
-
-  # mock response
-  def self.mock_render(entity)
+  def self.nothing(entity)
     entity
   end
 end

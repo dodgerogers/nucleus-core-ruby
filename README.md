@@ -16,7 +16,7 @@
 
 ## Overview
 
-A colleague drew this diagram showing how business logic 'should' be separated from the framework, which seemed simple to understand but difficult to execute.\
+A colleague once drew this diagram showing how business logic should be separated from the framework. It seemed relatively simple to understand but difficult to execute.\
 
 ![Separating business logic from the framework](doc/images/readme.png)
 
@@ -52,7 +52,7 @@ require "nucleus-core"
 NucleusCore.configure do |config|
   config.logger = Logger.new($stdout)
   config.workflow_process_repository = WorkflowProcessRepository
-  config.workflow_process_persistance_method = :save!
+  config.workflow_process_save_method = :save!
   config.default_response_format = :json
   config.data_access_exceptions = [
     RecordNotFound,
@@ -84,26 +84,26 @@ class RequestAdapter
 end
 ```
 
-4. Create a `response adapter` class which defines and implements the following methods. The single parameter is a instance of `Nucleus::ResponseAdapter`.
+4. Create a `response adapter` class which defines methods to support the outputs needed. The naming convention conforms to how you specify the `format` parameter in your `request adapter`. The single parameter is an instance of `Nucleus::View::Response`.
 
 ```ruby
 class ResponseAdapter
-  def self.render_json(entity)
+  def self.json(entity)
   end
 
-  def self.render_xml(entity)
+  def self.xml(entity)
   end
 
-  def self.render_pdf(entity)
+  def self.pdf(entity)
   end
 
-  def self.render_csv(entity)
+  def self.csv(entity)
   end
 
-  def self.render_text(entity)
+  def self.text(entity)
   end
 
-  def self.render_nothing(entity)
+  def self.nothing(entity)
   end
 end
 ```
@@ -125,11 +125,11 @@ class Views::Order < NucleusCore::View
   end
 
   def csv_response
-    NucleusCore::ResponseAdapter.new(format: :csv, content: generat_csv(self))
+    NucleusCore::View::Response.new(format: :csv, content: generat_csv(self))
   end
 
   def pdf_response
-    NucleusCore::ResponseAdapter.new(format: :pdf, content: generat_pdf(self))
+    NucleusCore::View::Response.new(format: :pdf, content: generat_pdf(self))
   end
 end
 ```
@@ -140,7 +140,7 @@ end
 class OrdersEndpoint
   def initialize
     @responder = Nucleus::Responder.new(
-      response_adapter: ResponseAdapter,
+      response_adapter: View::Response,
       request_adapter: RequestAdapter
     )
     @request = {
@@ -156,11 +156,12 @@ class OrdersEndpoint
 
       policy.enforce!(:can_fulfill?)
 
-      context, process = FulfillOrder.call(id: req.order_id, user: req.user)
+      manager = FulfillOrder.call(id: req.order_id, user: req.user)
+      context = manager.context
 
       return context if !context.success?
 
-      return Views::Order.new(order: context.order, process: process)
+      return Views::Order.new(order: context.order, process: manager.process)
     end
   end
 end
@@ -236,23 +237,23 @@ end
 class FulfillOrder < NucleusCore::Workflow
   def define
     start_node(continue: :apply_discount?)
-    register_node(
+    add_node(
       state: :apply_discount?,
       operation: FetchOrder,
       determine_signal: ->(context) { context.order.total > 10 ? :discount : :pay },
       signals: { discount: :discount_order, pay: :take_payment }
     )
-    register_node(
+    add_node(
       state: :discount_order,
       operation: ->(context) { context.discounted = context.order.discount! },
       signals: { continue: :take_payment }
     )
-    register_node(
+    add_node(
       state: :take_payment,
       operation: ProcessOrderPayment,
       signals: { continue: :completed }
     )
-    register_node(
+    add_node(
       state: :completed,
       determine_signal: ->(_) { :wait }
     )

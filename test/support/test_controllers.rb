@@ -1,5 +1,3 @@
-# By default this controller NucleusCore::Responder will use an injected
-# ResponseAdapter, see `test/support/configuration` for details.
 class TestController
   attr_reader :responder
 
@@ -14,7 +12,9 @@ class TestController
     request = init_request(params)
 
     responder.execute(request) do |req|
-      context, process = SimpleWorkflow.call(context: req.parameters)
+      manager = SimpleWorkflow.call(context: req.parameters)
+      context = manager.context
+      process = manager.process
 
       return TestSimpleView.new(total: context.total, state: process.state) if context.success?
 

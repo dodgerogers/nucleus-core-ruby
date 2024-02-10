@@ -12,7 +12,9 @@ describe NucleusCore::Workflow do
 
     describe "with nil context, and signal" do
       it "returns the expected context, and process state" do
-        context, process = subject
+        manager = subject
+        context = manager.context
+        process = manager.process
 
         assert_predicate(context, :success?)
         assert_equal(3, context.total)
@@ -27,7 +29,9 @@ describe NucleusCore::Workflow do
       end
 
       it "returns the expected context, and process state" do
-        context, process = subject
+        manager = subject
+        context = manager.context
+        process = manager.process
 
         assert_predicate(context, :success?)
         assert_equal(2, context.total)
@@ -41,7 +45,9 @@ describe NucleusCore::Workflow do
       end
 
       it "returns the expected failed context, and process state" do
-        context, process = subject
+        manager = subject
+        context = manager.context
+        process = manager.process
 
         refute_predicate(context, :success?)
         assert_match(/invalid signal: #{@signal}/, context.message)
@@ -55,7 +61,9 @@ describe NucleusCore::Workflow do
       end
 
       it "returns the expected context, and process state" do
-        context, process = subject
+        manager = subject
+        context = manager.context
+        process = manager.process
 
         assert_predicate(context, :success?)
         assert_equal(14, context.total)
@@ -68,7 +76,9 @@ describe NucleusCore::Workflow do
       subject { FailingWorkflow.call(process: @process, signal: @signal, context: { total: @total }) }
 
       it "fails the context" do
-        context, process = subject
+        manager = subject
+        context = manager.context
+        process = manager.process
 
         refute_predicate(context, :success?)
         assert_match(/workflow error!/, context.message)
@@ -81,13 +91,15 @@ describe NucleusCore::Workflow do
         @process = NucleusCore::Workflow::Process.new(
           :initial,
           repository: TestRepository,
-          persistance_method: :persist_process
+          save_method: :persist_process
         )
       end
 
       describe "and it succeeds" do
         it "returns the expected context" do
-          context, process = subject
+          manager = subject
+          context = manager.context
+          process = manager.process
 
           assert_predicate(context, :success?)
           assert_equal(:stopped, process.state)
@@ -99,12 +111,14 @@ describe NucleusCore::Workflow do
           @process = NucleusCore::Workflow::Process.new(
             :initial,
             repository: TestRepository,
-            persistance_method: :failing_persist_process
+            save_method: :failing_persist_process
           )
         end
 
         it "fails the context" do
-          context, process = subject
+          manager = subject
+          context = manager.context
+          process = manager.process
 
           refute_predicate(context, :success?)
           assert_match(/SimpleWorkflow failed to persist process state: `started`/, context.message)
@@ -119,7 +133,9 @@ describe NucleusCore::Workflow do
       end
 
       it "fails the context" do
-        context, process = subject
+        manager = subject
+        context = manager.context
+        process = manager.process
 
         refute_predicate(context, :success?)
         assert_match(/Unhandled exception FailingWorkflow: not found/, context.message)
@@ -136,7 +152,9 @@ describe NucleusCore::Workflow do
     end
 
     it "reverts specified side effects" do
-      context, process = RollbackWorkflow.call(context: @args)
+      manager = RollbackWorkflow.call(context: @args)
+      context = manager.context
+      process = manager.process
 
       assert_predicate(context, :success?)
       assert_equal(3, context.total)
