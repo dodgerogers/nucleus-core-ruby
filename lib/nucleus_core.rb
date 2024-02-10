@@ -6,10 +6,8 @@ module NucleusCore
   autoload :CLI, "nucleus_core/cli"
   autoload :VERSION, "nucleus_core/version"
   autoload :Operation, "nucleus_core/operation"
-  autoload :Workflow, "nucleus_core/workflow"
   autoload :Responder, "nucleus_core/responder"
   autoload :RequestAdapter, "nucleus_core/request_adapter"
-  autoload :ResponseAdapter, "nucleus_core/response_adapter"
   autoload :SimpleObject, "nucleus_core/simple_object"
   autoload :Policy, "nucleus_core/policy"
   autoload :Repository, "nucleus_core/repository"
@@ -17,7 +15,8 @@ module NucleusCore
 
   extensions = File.join(__dir__, "nucleus_core", "extensions", "*.rb")
   exceptions = File.join(__dir__, "nucleus_core", "exceptions.rb")
-  [extensions, exceptions].each do |dir|
+  workflow = File.join(__dir__, "nucleus_core", "workflow", "*.rb")
+  [extensions, exceptions, workflow].each do |dir|
     Dir[dir].sort.each { |f| require f }
   end
 
@@ -25,7 +24,7 @@ module NucleusCore
     attr_accessor :default_response_format,
                   :logger,
                   :workflow_process_repository,
-                  :workflow_process_persistance_method
+                  :workflow_process_save_method
     attr_reader :request_exceptions, :data_access_exceptions
 
     def initialize

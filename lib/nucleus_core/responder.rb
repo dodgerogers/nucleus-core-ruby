@@ -27,7 +27,7 @@ module NucleusCore
     def render_entity(entity)
       return handle_context(entity) if entity.is_a?(NucleusCore::Operation::Context)
       return render_view(entity) if subclass_of(entity, NucleusCore::View)
-      return render_response_adapter(entity) if subclass_of(entity, NucleusCore::ResponseAdapter)
+      return render_view_response(entity) if subclass_of(entity, NucleusCore::View::Response)
     end
 
     def handle_context(context)
@@ -40,20 +40,18 @@ module NucleusCore
     end
 
     def render_view(view)
-      format_render_method = "#{request_context.format}_response".to_sym
-      response_adapter = view.send(format_render_method) if view.respond_to?(format_render_method)
+      format_response = "#{request_context.format}_response".to_sym
+      resp_adapter = view.send(format_response) if view.respond_to?(format_response)
 
-      raise NucleusCore::BadRequest, "`#{request_context.format}` is not supported" if response_adapter.nil?
+      raise NucleusCore::BadRequest, "`#{request_context.format}` is not supported" if resp_adapter.nil?
 
-      render_response_adapter(response_adapter)
+      render_view_response(resp_adapter)
     end
 
-    def render_response_adapter(entity)
-      render_headers(entity.headers)
+    def render_view_response(resp_adapter)
+      render_headers(resp_adapter.headers)
 
-      render_method = "render_#{request_context.format}"
-
-      response_adapter&.send(render_method, entity)
+      response_adapter&.send(request_context.format, resp_adapter)
     end
 
     def handle_exception(exception)
