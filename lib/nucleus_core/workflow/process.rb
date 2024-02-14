@@ -1,21 +1,21 @@
 module NucleusCore
   module Workflow
     class Process
-      attr_accessor :state, :reference, :visited, :repository, :save_method
+      attr_accessor :state, :reference, :visited, :persistance_service, :persistance_method
 
       def initialize(state, opts={})
         @state = state
         @visited = []
         @reference = opts[:reference]
-        @repository = opts[:repository]
-        @save_method = opts[:save_method]
+        @persistance_service = opts[:persistance_service]
+        @persistance_method = opts[:persistance_method]
       end
 
-      def save(state)
+      def persist(state)
         attrs = { state: state, reference: reference }
-        persisted = repository&.send(save_method, self, attrs) != false
+        persisted = persistance_service&.send(persistance_method, self, attrs) != false
 
-        return false if repository && save_method && !persisted
+        return false if persistance_service && persistance_method && !persisted
 
         @state = state
         @visited.push(state)

@@ -1,7 +1,7 @@
 require "nucleus_core/simple_object"
 
 module NucleusCore
-  class ViewResponse < NucleusCore::SimpleObject
+  class ViewResponseImplementation < NucleusCore::SimpleObject
     def initialize(res_format=nil, attrs={})
       res_format ||= NucleusCore.configuration.default_response_format
       attrs_method = "#{res_format}_attributes"

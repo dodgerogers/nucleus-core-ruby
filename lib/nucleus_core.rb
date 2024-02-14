@@ -21,10 +21,7 @@ module NucleusCore
   end
 
   class Configuration
-    attr_accessor :default_response_format,
-                  :logger,
-                  :workflow_process_repository,
-                  :workflow_process_save_method
+    attr_accessor :default_response_format, :logger
     attr_reader :request_exceptions, :data_access_exceptions
 
     def initialize
