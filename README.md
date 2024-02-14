@@ -196,8 +196,6 @@ class OrderRepository < NucleusCore::Repository
   def self.destroy(id)
     execute do |result|
       Rest::Client.execute("https://myshop.com/orders/#{id}", :delete)
-
-      result.entity = nil
     rescue RestClient::CustomException => e
       result.exception = e
     end

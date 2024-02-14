@@ -35,8 +35,9 @@ module NucleusCore
           break if status == FAILED
 
           if process.persist(current_node.state) == false
-            message = "#{graph.class.name} failed to persist process state: `#{current_node.state}`"
-            context.fail!(message)
+            context.fail!(
+              "#{graph.class.name} failed to persist process state: `#{current_node.state}`"
+            )
           end
 
           current_node = graph.fetch_node(next_signal)
