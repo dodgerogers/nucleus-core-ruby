@@ -34,7 +34,7 @@ module NucleusCore
 
           break if status == FAILED
 
-          if process.save(current_node.state) == false
+          if process.persist(current_node.state) == false
             message = "#{graph.class.name} failed to persist process state: `#{current_node.state}`"
             context.fail!(message)
           end
@@ -61,8 +61,7 @@ module NucleusCore
           node.operation.rollback(context) if node.operation.is_a?(NucleusCore::Operation)
           node.rollback.call(context) if node.rollback.is_a?(Proc)
 
-          # TODO: what if saving fails?
-          process.save(state)
+          process.persist(state)
         end
 
         nil

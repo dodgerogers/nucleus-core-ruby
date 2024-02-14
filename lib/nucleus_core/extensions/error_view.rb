@@ -1,5 +1,4 @@
 require "nucleus_core/view"
-require "nucleus_core/view_response"
 
 class NucleusCore::ErrorView < NucleusCore::View
   def initialize(attrs={})

@@ -90,8 +90,8 @@ describe NucleusCore::Workflow do
       before do
         @process = NucleusCore::Workflow::Process.new(
           :initial,
-          repository: TestRepository,
-          save_method: :persist_process
+          persistance_service: TestRepository,
+          persistance_method: :persist_process
         )
       end
 
@@ -110,8 +110,8 @@ describe NucleusCore::Workflow do
         before do
           @process = NucleusCore::Workflow::Process.new(
             :initial,
-            repository: TestRepository,
-            save_method: :failing_persist_process
+            persistance_service: TestRepository,
+            persistance_method: :failing_persist_process
           )
         end
 
