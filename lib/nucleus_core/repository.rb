@@ -5,10 +5,10 @@ module NucleusCore
     end
 
     def self.execute(&block)
-      Result.new.tap do |res|
-        res.entity = Utils.capture(&block)
+      Result.new.tap do |result|
+        Utils.capture(result, &block)
       rescue NucleusCore::BaseException, *NucleusCore.configuration.data_access_exceptions => e
-        res.exception = e
+        result.exception = e
       end
     end
   end

@@ -20,7 +20,7 @@ A colleague once drew this diagram showing how business logic should be separate
 
 ![Separating business logic from the framework](doc/images/readme.png)
 
-`Nucleus-Core` is a way to translate this into code. It prescribes that the framework handles requests and rendering responses, then business logic is everything else in-between.
+`Nucleus-Core` is a way to translate this into code. It prescribes that the framework handles requests and rendering responses, and business logic is everything else and has components to suite.
 
 ## Components
 
@@ -181,15 +181,25 @@ class OrderPolicy < NucleusCore::Policy
 end
 ```
 
-`Repositories` handle interactions with the data source for a resource. The data access library/ORM/client is not important, just return an object that the application defines. Repositories return `NucleusCore::Repository::Result` objects which have `entity`, and `exception` attributes. Set `config.workflow_process_repository` and `config.workflow_process_persistance_method` to persist the workflow process state.
+`Repositories` handle interactions with the data source for a resource. The data access library/ORM/client is not important, just return an object that the application owns. Repositories yield and return  `NucleusCore::Repository::Result` objects which have `entity`, and `exception` properties assigned.
 
 ```ruby
 class OrderRepository < NucleusCore::Repository
   def self.find(id)
-    execute do
+    execute do |result|
       resp = Rest::Client.execute("https://myshop.com/orders/#{id}", :get)
 
-      return DomainModels::Order.new(id: resp[:id])
+      result.entity = DomainModels::Order.new(id: resp[:id])
+    end
+  end
+
+  def self.destroy(id)
+    execute do |result|
+      Rest::Client.execute("https://myshop.com/orders/#{id}", :delete)
+
+      result.entity = nil
+    rescue RestClient::CustomException => e
+      result.exception = e
     end
   end
 end
