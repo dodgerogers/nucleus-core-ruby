@@ -54,12 +54,16 @@ module NucleusCore
       { type: "application/xml", format: :xml }
     end
 
+    def html_attributes(_attrs={})
+      { type: "text/html", format: :html }
+    end
+
     def text_attributes(_attrs={})
-      { type: "application/text", format: :text }
+      { type: "text/plain", format: :text }
     end
 
     def nothing_attributes(_attrs={})
-      { content: nil, type: "text/html; charset=utf-8", format: :nothing }
+      { content: nil, type: "text/html; charset=utf-8" }
     end
   end
 end

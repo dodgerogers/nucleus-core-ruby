@@ -4,6 +4,8 @@ class TestRepository < NucleusCore::Repository
       raise NucleusCore::NotFound.new(message: "cannot find thing with ID #{id}") if id.odd?
 
       result.entity = OpenStruct.new(id: id, ref: SecureRandom.hex)
+    rescue NucleusCore::NotFound => e
+      result.exception = e
     end
   end
 

@@ -22,17 +22,12 @@ module NucleusCore
 
   class Configuration
     attr_accessor :default_response_format, :logger
-    attr_reader :request_exceptions, :data_access_exceptions
+    attr_reader :request_exceptions
 
     def initialize
       @logger = nil
       @request_exceptions = format_request_exceptions
-      @data_access_exceptions = []
       @default_response_format = :json
-    end
-
-    def data_access_exceptions=(exceptions=[])
-      @data_access_exceptions = exceptions
     end
 
     def request_exceptions=(args={})
