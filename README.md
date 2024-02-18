@@ -16,11 +16,11 @@
 
 ## Overview
 
-A colleague once drew this diagram showing how business logic should be separated from the framework. It seemed relatively simple to understand but difficult to execute.\
+I once saw this diagram which showed how business logic "should" be separated from the framework. It seemed a simple enough concept but in practice was difficult to execute.\
 
 ![Separating business logic from the framework](doc/images/readme.png)
 
-`Nucleus-Core` is a way to translate this into code. It prescribes that the framework handles requests and rendering responses, and business logic is everything else and has components to suite.
+Nucleus-Core is a framework to translate this in code. It prescribes that the framework handles requests and rendering responses, and business logic is everything else in-between.
 
 ## Components
 
@@ -39,9 +39,8 @@ A colleague once drew this diagram showing how business logic should be separate
 
 1. Install the gem
 
-Gemfile
 ```ruby
-gem 'nucleus-core'
+gem install 'nucleus-core'
 ```
 
 2. Initialize and configure
@@ -69,22 +68,22 @@ NucleusCore.configure do |config|
 end
 ```
 
-3. Create a `request adapter` class to define what paramaters your business logic has access to. This object yielded to the method `Responder.execute(&block)`.
+3. Create a `request adapter` which specifies request paramaters to pass to your business logic.
 
 ```ruby
 class RequestAdapter
   def self.call(args={})
     {
-      format: args[:format],
+      format: args[:format], # required
       parameters: args[:params],
       cookies: args[:cookies],
-      anything: 'value'
+      key: 'value'
     }
   end
 end
 ```
 
-4. Create a `response adapter` class which defines methods to support the outputs needed. The naming convention conforms to how you specify the `format` parameter in your `request adapter`. The single parameter is an instance of `Nucleus::View::Response`.
+4. Create a `response adapter` to handle rendering.
 
 ```ruby
 class ResponseAdapter
@@ -108,7 +107,7 @@ class ResponseAdapter
 end
 ```
 
-5. Define your view and it's responses (`json` is defined by default).
+5. Define views and their formats.
 
 ```ruby
 class Views::Order < NucleusCore::View
@@ -134,7 +133,7 @@ class Views::Order < NucleusCore::View
 end
 ```
 
-6. Initialize `Nucleus::Responder` with your adapters, instantiate a request object, call your business logic, then return a view.
+6. Then put it altogether.
 
 ```ruby
 class OrdersEndpoint
@@ -167,11 +166,11 @@ class OrdersEndpoint
 end
 ```
 
-6. We want to support as many frameworks as possible so tell us about it!
+We want to support as many frameworks as possible so tell us about it!
 
 ### How to Implement Business Logic
 
-`Policies` have access to the client, entity, and should return a boolean.
+`Policies` have access to the accessing user, entity, and should return a boolean.
 
 ```ruby
 class OrderPolicy < NucleusCore::Policy
@@ -181,7 +180,7 @@ class OrderPolicy < NucleusCore::Policy
 end
 ```
 
-`Repositories` handle interactions with the data source for a resource. The data access library/ORM/client is not important, just return an object that the application owns. Repositories yield and return  `NucleusCore::Repository::Result` objects which have `entity`, and `exception` properties assigned.
+`Repositories` handle interactions with the data source. The data access library/ORM/client is not important, return an object that the application owns. Repositories return `NucleusCore::Repository::Result` objects which have `entity`, and `exception` properties.
 
 ```ruby
 class OrderRepository < NucleusCore::Repository
@@ -203,7 +202,7 @@ class OrderRepository < NucleusCore::Repository
 end
 ```
 
-`Operations` define single units of work, ideally have a single side effect, can attach entities and errors to the `context`, and can rollback any side effects. They implement two instance methods - `call` and `rollback` which are passed either a `Hash` or `Nucleus::Operation::Context` object, and are called via their class method namesakes (e.g. `FetchOrder.call(args)`, `FetchOrder.rollback(context)`).
+`Operations` execute a single business process, attach entities and errors to the `context`, and rolls back side effects on failure. They implement two instance methods - `call` and `rollback` which are passed either a `Hash` or `Nucleus::Operation::Context` object, and are called via their class method namesakes (e.g. `FetchOrder.call(args)`, `FetchOrder.rollback(context)`).
 
 ```ruby
 class FetchOrder < NucleusCore::Operation
@@ -239,7 +238,7 @@ class FetchOrder < NucleusCore::Operation
 end
 ```
 
-`Worklflows` define multi-stage, divergant proceedures. They can be composed of `Operations` or anonymous functions, and are called as such (e.g. `context, process = FulfillOrder.call(args)`, `FulfillOrder.rollback(context)`).
+`Worklflows` define multi-step proceedures, are composed of operations or lambas/procs, and return a workflow manager object.
 
 ```ruby
 class FulfillOrder < NucleusCore::Workflow
