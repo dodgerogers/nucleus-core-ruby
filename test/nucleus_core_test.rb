@@ -16,15 +16,6 @@ describe NucleusCore do
         assert_equal([SecurityError], exceptions.unauthorized)
       end
     end
-
-    # mapping set in `test/test_helper.rb`
-    describe "data_access_exceptions" do
-      it "initializes with expected values" do
-        exceptions = subject.data_access_exceptions
-
-        assert_equal([IOError], exceptions)
-      end
-    end
   end
 
   describe "#reset" do
@@ -39,8 +30,6 @@ describe NucleusCore do
       refute_empty(exceptions.unprocessable)
       refute_empty(exceptions.unauthorized)
 
-      refute_empty(subject.data_access_exceptions)
-
       NucleusCore.reset
 
       exceptions = NucleusCore.configuration.request_exceptions
@@ -48,9 +37,6 @@ describe NucleusCore do
       assert_empty(exceptions.not_found)
       assert_empty(exceptions.unprocessable)
       assert_empty(exceptions.unauthorized)
-
-      data_access_exceptions = NucleusCore.configuration.data_access_exceptions
-      assert_empty(data_access_exceptions)
     end
   end
 end

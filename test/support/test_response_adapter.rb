@@ -1,4 +1,4 @@
-class TestResponseAdapter
+class TestResponseAdapter < NucleusCore::View::Response
   def self.json(entity)
     entity
   end
@@ -21,5 +21,9 @@ class TestResponseAdapter
 
   def self.nothing(entity)
     entity
+  end
+
+  def self.set_header(*_args)
+    nil
   end
 end

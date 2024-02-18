@@ -53,11 +53,6 @@ NucleusCore.configure do |config|
   config.workflow_process_repository = WorkflowProcessRepository
   config.workflow_process_save_method = :save!
   config.default_response_format = :json
-  config.data_access_exceptions = [
-    RecordNotFound,
-    RecordInvalid,
-    RecordNotSaved
-  ]
   config.request_exceptions = {
     not_found: RecordNotFound,
     unprocessible: [RecordInvalid, RecordNotSaved],
@@ -87,10 +82,15 @@ end
 
 ```ruby
 class ResponseAdapter
+  # entity: NucleusCore::View::Response
+  
   def self.json(entity)
   end
 
   def self.xml(entity)
+  end
+
+  def self.html(entity)
   end
 
   def self.pdf(entity)
@@ -103,6 +103,9 @@ class ResponseAdapter
   end
 
   def self.nothing(entity)
+  end
+
+  def self.set_header(key, value)
   end
 end
 ```
@@ -121,6 +124,11 @@ class Views::Order < NucleusCore::View
     end
 
     super(attributes)
+  end
+
+  # Default implementation
+  def json_response
+    NucleusCore::View::Response.new(format: :json, content: to_h)
   end
 
   def csv_response
@@ -189,6 +197,8 @@ class OrderRepository < NucleusCore::Repository
       resp = Rest::Client.execute("https://myshop.com/orders/#{id}", :get)
 
       result.entity = DomainModels::Order.new(id: resp[:id])
+    rescue RestClient::RequestException => e
+      result.exception = e
     end
   end
 

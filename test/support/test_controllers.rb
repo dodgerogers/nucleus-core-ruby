@@ -8,7 +8,7 @@ class TestController
     )
   end
 
-  def index(params={})
+  def workflow(params={})
     request = init_request(params)
 
     responder.execute(request) do |req|
@@ -22,7 +22,7 @@ class TestController
     end
   end
 
-  def show(params={})
+  def operation(params={})
     request = init_request(params)
 
     responder.execute(request) do |req|
@@ -34,11 +34,46 @@ class TestController
     end
   end
 
-  def update(params={})
+  def successful_operation_context(params={})
+    request = init_request(params)
+
+    responder.execute(request) do |_req|
+      return NucleusCore::Operation::Context.new
+    end
+  end
+
+  def failed_operation_context(params={})
+    request = init_request(params)
+
+    responder.execute(request) do |_req|
+      ctx = NucleusCore::Operation::Context.new
+      ctx.fail!("something went wrong")
+    rescue NucleusCore::Operation::Context::Error
+      ctx
+    end
+  end
+
+  def csv(params={})
     request = init_request(params)
 
     responder.execute(request) do |_req|
       return TestSimpleView.new(total: 0).csv_response
+    end
+  end
+
+  def nothing(params={})
+    request = init_request(params)
+
+    responder.execute(request) do |_req|
+      return nil
+    end
+  end
+
+  def nothing_extended(params={})
+    request = init_request(params)
+
+    responder.execute(request) do |_req|
+      return NucleusCore::View::Response.new(:nothing, headers: { "nothing" => "header" })
     end
   end
 

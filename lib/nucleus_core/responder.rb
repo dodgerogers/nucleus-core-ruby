@@ -28,10 +28,11 @@ module NucleusCore
       return handle_context(entity) if entity.is_a?(NucleusCore::Operation::Context)
       return render_view(entity) if subclass_of(entity, NucleusCore::View)
       return render_view_response(entity) if subclass_of(entity, NucleusCore::View::Response)
+      return render_nothing if entity.nil?
     end
 
     def handle_context(context)
-      return render_nothing(context) if context.success?
+      return render_nothing if context.success?
       return handle_exception(context.exception) if context.exception
 
       view = NucleusCore::ErrorView.new(message: context.message, status: :internal_server_error)
@@ -39,19 +40,25 @@ module NucleusCore
       render_view(view)
     end
 
-    def render_view(view)
-      format_response = "#{request_context.format}_response".to_sym
-      resp_adapter = view.send(format_response) if view.respond_to?(format_response)
+    def render_nothing
+      view_response = NucleusCore::View::Response.new(:nothing)
 
-      raise NucleusCore::BadRequest, "`#{request_context.format}` is not supported" if resp_adapter.nil?
-
-      render_view_response(resp_adapter)
+      render_view_response(view_response)
     end
 
-    def render_view_response(resp_adapter)
-      render_headers(resp_adapter.headers)
+    def render_view(view)
+      view_format = "#{request_context.format}_response".to_sym
+      view_response = view.send(view_format) if view.respond_to?(view_format)
 
-      response_adapter&.send(request_context.format, resp_adapter)
+      raise NucleusCore::BadRequest, "`#{request_context.format}` is not supported" if view_response.nil?
+
+      render_view_response(view_response)
+    end
+
+    def render_view_response(view_response)
+      render_headers(view_response.headers)
+
+      response_adapter&.send(request_context.format, view_response)
     end
 
     def handle_exception(exception)
@@ -64,8 +71,12 @@ module NucleusCore
     end
 
     def render_headers(headers={})
+      unless response_adapter.respond_to?(:set_header)
+        raise NotImplementedError, "Define `set_header` for #{response_adapter.class}"
+      end
+
       (headers || {}).each do |k, v|
-        formatted_key = k.titleize.gsub(/\s *|_/, "-")
+        formatted_key = k.gsub(/\s *|_/, "-")
 
         response_adapter&.set_header(formatted_key, v)
       end
