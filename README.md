@@ -16,11 +16,11 @@
 
 ## Overview
 
-I once saw this diagram which showed how business logic "should" be separated from the framework. It seemed a simple enough concept but in practice was difficult to execute.\
+I once saw this diagram which showed how business logic "should" be separated from the framework. It seemed a simple enough concept but difficult to execute.\
 
 ![Separating business logic from the framework](doc/images/readme.png)
 
-Nucleus-Core is a framework to translate this in code. It prescribes that the framework handles requests and rendering responses, and business logic is everything else in-between.
+Nucleus-Core is a framework to translate this in code. Prescribing that the framework handles requests and rendering responses, and business logic is everything else in-between.
 
 ## Components
 
@@ -113,7 +113,7 @@ end
 5. Define views and their formats.
 
 ```ruby
-class Views::Order < NucleusCore::View
+class OrderView < NucleusCore::View
   def initialize(order, process)
     attributes = {}.tap do |attrs|
       attrs[:id] = order.id
@@ -147,7 +147,7 @@ end
 class OrdersEndpoint
   def initialize
     @responder = Nucleus::Responder.new(
-      response_adapter: View::Response,
+      response_adapter: ResponseAdapter,
       request_adapter: RequestAdapter
     )
     @request = {
@@ -168,7 +168,7 @@ class OrdersEndpoint
 
       return context if !context.success?
 
-      return Views::Order.new(order: context.order, process: manager.process)
+      return OrderView.new(order: context.order, process: manager.process)
     end
   end
 end
