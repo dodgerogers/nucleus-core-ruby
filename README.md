@@ -50,8 +50,6 @@ require "nucleus-core"
 
 NucleusCore.configure do |config|
   config.logger = Logger.new($stdout)
-  config.workflow_process_repository = WorkflowProcessRepository
-  config.workflow_process_save_method = :save!
   config.default_response_format = :json
   config.request_exceptions = {
     not_found: RecordNotFound,
@@ -60,16 +58,19 @@ NucleusCore.configure do |config|
     forbidden: AuthorizationException,
     unauthorized: AuthenticationException
   }
+  # Optional
+  config.workflow_process_repository = WorkflowProcessRepository
+  config.workflow_process_save_method = :save!
 end
 ```
 
-3. Create a `request adapter` which specifies request paramaters to pass to your business logic.
+3. Create a `request adapter` which declares paramaters to pass to your services.
 
 ```ruby
 class RequestAdapter
   def self.call(args={})
     {
-      format: args[:format], # required
+      format: args[:format],
       parameters: args[:params],
       cookies: args[:cookies],
       key: 'value'
@@ -78,7 +79,7 @@ class RequestAdapter
 end
 ```
 
-4. Create a `response adapter` to handle rendering.
+4. Create a `response adapter` to execute rendering.
 
 ```ruby
 class ResponseAdapter
@@ -110,7 +111,7 @@ class ResponseAdapter
 end
 ```
 
-5. Define views and their formats.
+5. Define views and the formats they render to.
 
 ```ruby
 class OrderView < NucleusCore::View
@@ -126,7 +127,7 @@ class OrderView < NucleusCore::View
     super(attributes)
   end
 
-  # Default implementation
+  # JSON defined by default
   def json_response
     NucleusCore::View::Response.new(format: :json, content: to_h)
   end
@@ -141,7 +142,7 @@ class OrderView < NucleusCore::View
 end
 ```
 
-6. Then put it altogether.
+6. Then compose it all together.
 
 ```ruby
 class OrdersEndpoint
@@ -174,9 +175,9 @@ class OrdersEndpoint
 end
 ```
 
-We want to support as many frameworks as possible so tell us about it!
+We want to support as many frameworks and languages as possible so tell us about it!
 
-### How to Implement Business Logic
+### How to implement the components
 
 `Policies` have access to the accessing user, entity, and should return a boolean.
 
@@ -188,7 +189,7 @@ class OrderPolicy < NucleusCore::Policy
 end
 ```
 
-`Repositories` handle interactions with the data source. The data access library/ORM/client is not important, return an object that the application owns. Repositories return `NucleusCore::Repository::Result` objects which have `entity`, and `exception` properties.
+`Repositories` handle interactions with data sources (databases, API's, files, etc). Repositories return `NucleusCore::Repository::Result` objects which have `entity`, and `exception` properties.
 
 ```ruby
 class OrderRepository < NucleusCore::Repository
