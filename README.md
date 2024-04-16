@@ -16,7 +16,7 @@
 
 ## Overview
 
-I once saw this diagram which showed how business logic "should" be separated from the framework. It seemed a simple enough concept but difficult to execute.\
+I once saw this diagram which showed how business logic "should" be separated from the framework. It seemed a simple enough concept but difficult to execute.
 
 ![Separating business logic from the framework](doc/images/readme.png)
 
