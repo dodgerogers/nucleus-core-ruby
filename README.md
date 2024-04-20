@@ -1,4 +1,4 @@
-# Nucleus Core
+# Nucleus Core Ruby
 
 [![Gem Version](https://badge.fury.io/rb/nucleus-core.svg)](https://rubygems.org/gems/nucleus-core)
 [![Circle](https://circleci.com/gh/dodgerogers/nucleus-core-ruby/tree/main.svg?style=shield)](https://app.circleci.com/pipelines/github/dodgerogers/nucleus-core-ruby?branch=main)
@@ -16,11 +16,7 @@
 
 ## Overview
 
-I saw a diagram like this having watched various Uncle Bob, clean code, and domain driven design presentations which demonstrated how "business logic" should be written. It seemed like a great ideal to aim for but oblique to achieve.
-
-![Separating business logic from the framework](doc/images/readme.png)
-
-Nucleus-Core is a framework to translate these ideas into code. It prescribes that the framework handles requests and rendering responses, and business logic is everything else in-between.
+Nucleus-Core-Ruby is a set of paradigms and components to separate your business logic from the framework.
 
 ## Components
 
