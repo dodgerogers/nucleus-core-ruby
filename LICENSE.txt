@@ -1,8 +1,8 @@
 Copyright (c) 2023 dodgerogers
 
-Nucleus-Core Software License Agreement
+Nucleus Software License Agreement
 
-This License Agreement ("Agreement") is a legal agreement between you (either an individual or a single entity) and [Your Company Name] ("Licensor") for the software product named Nucleus Core, including any associated media, printed materials, and electronic documentation (collectively referred to as the "Software").
+This License Agreement ("Agreement") is a legal agreement between you (either an individual or a single entity) and [Your Company Name] ("Licensor") for the software product named Nucleus, including any associated media, printed materials, and electronic documentation (collectively referred to as the "Software").
 
 BY INSTALLING, COPYING, OR OTHERWISE USING THE SOFTWARE, YOU AGREE TO BE BOUND BY THE TERMS OF THIS AGREEMENT. IF YOU DO NOT AGREE TO THE TERMS OF THIS AGREEMENT, DO NOT INSTALL OR USE THE SOFTWARE.
 
