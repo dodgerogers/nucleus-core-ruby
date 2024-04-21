@@ -1,21 +1,37 @@
-The MIT License (MIT)
-
 Copyright (c) 2023 dodgerogers
 
-Permission is hereby granted, free of charge, to any person obtaining a copy
-of this software and associated documentation files (the "Software"), to deal
-in the Software without restriction, including without limitation the rights
-to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
-copies of the Software, and to permit persons to whom the Software is
-furnished to do so, subject to the following conditions:
+Nucleus-Core Software License Agreement
 
-The above copyright notice and this permission notice shall be included in
-all copies or substantial portions of the Software.
+This License Agreement ("Agreement") is a legal agreement between you (either an individual or a single entity) and [Your Company Name] ("Licensor") for the software product named Nucleus Core, including any associated media, printed materials, and electronic documentation (collectively referred to as the "Software").
 
-THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
-THE SOFTWARE.
+BY INSTALLING, COPYING, OR OTHERWISE USING THE SOFTWARE, YOU AGREE TO BE BOUND BY THE TERMS OF THIS AGREEMENT. IF YOU DO NOT AGREE TO THE TERMS OF THIS AGREEMENT, DO NOT INSTALL OR USE THE SOFTWARE.
+
+1. License Grant:
+   Licensor grants you a non-exclusive, non-transferable license to use the Software solely for your internal business purposes, subject to the terms and conditions of this Agreement.
+
+2. Restrictions:
+   You may not:
+   a) Modify, adapt, translate, reverse engineer, decompile, disassemble, or create derivative works based on the Software;
+   b) Share, distribute, sublicense, or otherwise transfer the Software to any third party;
+   c) Remove or alter any copyright, trademark, or other proprietary notices contained in the Software;
+   d) Use the Software for any unlawful purpose or in any manner inconsistent with this Agreement.
+
+3. Ownership:
+   The Software is licensed, not sold. Licensor retains all right, title, and interest in and to the Software, including all intellectual property rights therein.
+
+4. Warranty Disclaimer:
+   THE SOFTWARE IS PROVIDED "AS IS" WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED. LICENSOR DISCLAIMS ALL WARRANTIES, INCLUDING BUT NOT LIMITED TO THE IMPLIED WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, AND NONINFRINGEMENT.
+
+5. Limitation of Liability:
+   TO THE MAXIMUM EXTENT PERMITTED BY APPLICABLE LAW, IN NO EVENT SHALL LICENSOR BE LIABLE FOR ANY INDIRECT, SPECIAL, INCIDENTAL, CONSEQUENTIAL, OR EXEMPLARY DAMAGES ARISING OUT OF OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THE SOFTWARE, WHETHER IN AN ACTION OF CONTRACT, NEGLIGENCE, OR OTHER TORTIOUS ACTION, EVEN IF LICENSOR HAS BEEN ADVISED OF THE POSSIBILITY OF SUCH DAMAGES.
+
+6. Governing Law:
+   This Agreement shall be governed by and construed in accordance with the laws of [Your Jurisdiction], excluding its conflict of law principles.
+
+7. Entire Agreement:
+   This Agreement constitutes the entire agreement between the parties concerning the subject matter hereof and supersedes all prior or contemporaneous agreements, understandings, and representations, whether oral or written.
+
+8. Contact Information:
+   If you have any questions about this Agreement, please contact [Your Company Name] at [Your Contact Information].
+
+By accepting this Agreement, you acknowledge that you have read and understood its terms and agree to be bound by them.
