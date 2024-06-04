@@ -32,10 +32,6 @@ module NucleusCore
         nodes[state]
       end
 
-      def initial_state
-        INITIAL_STATE
-      end
-
       def self.call(signal: nil, process: nil, context: nil)
         manager = NucleusCore::Workflow::Manager.new(process: process, context: context, graph: new)
 

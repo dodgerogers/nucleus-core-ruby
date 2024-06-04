@@ -21,7 +21,7 @@ describe NucleusCore::Repository do
           @repo.find(3)
         end
 
-        assert_equal("cannot find thing with ID 3", exception.message[:message])
+        assert_equal("cannot find thing with ID 3", exception.message)
       end
     end
   end

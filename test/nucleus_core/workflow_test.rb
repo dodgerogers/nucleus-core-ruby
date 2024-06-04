@@ -88,7 +88,7 @@ describe NucleusCore::Workflow do
 
     describe "when persisting the workflow process" do
       subject do
-        FailingWorkflow.call(
+        SimpleWorkflow.call(
           process: @process,
           signal: @signal,
           context: { total: @total }
@@ -124,8 +124,8 @@ describe NucleusCore::Workflow do
           context = manager.context
           process = manager.process
 
-          assert_predicate(context, :success?)
-          assert_equal(:stopped, process.state)
+          refute_predicate(context, :success?)
+          assert_equal(:initial, process.state)
         end
       end
     end

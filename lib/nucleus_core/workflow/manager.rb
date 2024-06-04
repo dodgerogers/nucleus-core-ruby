@@ -1,4 +1,4 @@
-# rubocop:disable Metrics/PerceivedComplexity, Metrics/CyclomaticComplexity, Metrics/AbcSize, :
+# rubocop:disable Metrics/PerceivedComplexity, Metrics/CyclomaticComplexity, Metrics/AbcSize:
 module NucleusCore
   module Workflow
     class Manager
@@ -15,11 +15,12 @@ module NucleusCore
       attr_accessor :process, :graph, :context
 
       def initialize(process:, graph:, context: {})
-        @process = process || NucleusCore::Workflow::Process.new(graph.initial_state)
+        @process = process || NucleusCore::Workflow::Process.new(graph.class::INITIAL_STATE)
         @graph = graph
         @context = build_context(context)
       end
 
+      # rubocop:disable Metrics/MethodLength;
       def call(signal=nil)
         signal ||= CONTINUE
         current_state = process.state
@@ -32,6 +33,9 @@ module NucleusCore
           status, next_signal, @context = execute_node(current_node, context)
 
           break if status == FAILED
+
+          process.state = current_node.state
+          process.visited.push(current_node.state)
 
           yield process, graph, context if block_given?
 
@@ -46,6 +50,7 @@ module NucleusCore
       rescue StandardError => e
         fail_context(@context, e)
       end
+      # rubocop:enable Metrics/MethodLength;
 
       def rollback
         visited = process.visited.clone
