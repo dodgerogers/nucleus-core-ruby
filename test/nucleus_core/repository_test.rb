@@ -9,20 +9,19 @@ describe NucleusCore::Repository do
     describe "when successful" do
       it "returns expected result object" do
         id = 2
-        result = @repo.find(id)
+        entity = @repo.find(id)
 
-        assert_equal(id, result.entity.id)
-        assert_nil(result.exception)
+        assert_equal(id, entity.id)
       end
     end
 
     describe "when an exception is raised" do
       it "returns expected result object" do
-        id = 3
-        result = @repo.find(id)
+        exception = assert_raises(NucleusCore::NotFound) do
+          @repo.find(3)
+        end
 
-        assert_nil(result.entity)
-        assert_instance_of(NucleusCore::NotFound, result.exception)
+        assert_equal("cannot find thing with ID 3", exception.message[:message])
       end
     end
   end
