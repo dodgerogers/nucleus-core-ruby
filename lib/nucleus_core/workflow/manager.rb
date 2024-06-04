@@ -1,4 +1,4 @@
-# rubocop:disable Metrics/PerceivedComplexity, Metrics/CyclomaticComplexity, Metrics/AbcSize:
+# rubocop:disable Metrics/PerceivedComplexity, Metrics/CyclomaticComplexity, Metrics/AbcSize, :
 module NucleusCore
   module Workflow
     class Manager
@@ -20,7 +20,6 @@ module NucleusCore
         @context = build_context(context)
       end
 
-      # rubocop:disable Metrics/MethodLength
       def call(signal=nil)
         signal ||= CONTINUE
         current_state = process.state
@@ -34,11 +33,7 @@ module NucleusCore
 
           break if status == FAILED
 
-          if process.persist(current_node.state) == false
-            context.fail!(
-              "#{graph.class.name} failed to persist process state: `#{current_node.state}`"
-            )
-          end
+          yield process, graph, context if block_given?
 
           current_node = graph.fetch_node(next_signal)
 
@@ -51,7 +46,6 @@ module NucleusCore
       rescue StandardError => e
         fail_context(@context, e)
       end
-      # rubocop:enable Metrics/MethodLength
 
       def rollback
         visited = process.visited.clone
@@ -62,7 +56,7 @@ module NucleusCore
           node.operation.rollback(context) if node.operation.is_a?(NucleusCore::Operation)
           node.rollback.call(context) if node.rollback.is_a?(Proc)
 
-          process.persist(state)
+          yield state, graph, context if block_given?
         end
 
         nil
