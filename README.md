@@ -54,9 +54,6 @@ NucleusCore.configure do |config|
     forbidden: AuthorizationException,
     unauthorized: AuthenticationException
   }
-  # Optional
-  config.workflow_process_repository = WorkflowProcessRepository
-  config.workflow_process_save_method = :save!
 end
 ```
 

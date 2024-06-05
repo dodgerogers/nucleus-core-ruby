@@ -1,15 +1,7 @@
 module NucleusCore
   class Operation
     class Context < OpenStruct
-      class Error < StandardError
-        attr_reader :exception
-
-        def initialize(message, opts={})
-          @exception = opts[:exception]
-
-          super(message)
-        end
-      end
+      class Error < StandardError; end
 
       attr_reader :failure
 

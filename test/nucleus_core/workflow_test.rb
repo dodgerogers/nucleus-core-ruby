@@ -147,6 +147,21 @@ describe NucleusCore::Workflow do
         assert_equal(:initial, process.state)
       end
     end
+
+    describe "chain of command execution" do
+      subject do
+        ChainOfCommandWorkflow.call(context: {})
+      end
+
+      it "fails the context" do
+        manager = subject
+        context = manager.context
+        process = manager.process
+
+        refute_predicate(context, :success?)
+        assert_equal(:four, process.state)
+      end
+    end
   end
 
   describe "#rollback" do

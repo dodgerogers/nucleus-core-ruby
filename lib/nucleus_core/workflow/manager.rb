@@ -20,7 +20,6 @@ module NucleusCore
         @context = build_context(context)
       end
 
-      # rubocop:disable Metrics/MethodLength;
       def call(signal=nil)
         signal ||= CONTINUE
         current_state = process.state
@@ -32,10 +31,9 @@ module NucleusCore
         while next_signal
           status, next_signal, @context = execute_node(current_node, context)
 
-          break if status == FAILED
+          break if status == FAILED && !graph.chain_of_command?
 
           process.state = current_node.state
-          process.visited.push(current_node.state)
 
           yield process, graph, context if block_given?
 
@@ -50,7 +48,6 @@ module NucleusCore
       rescue StandardError => e
         fail_context(@context, e)
       end
-      # rubocop:enable Metrics/MethodLength;
 
       def rollback
         visited = process.visited.clone
@@ -85,6 +82,14 @@ module NucleusCore
         next_signal = determine_signal(node, context)
 
         [status, next_signal, context]
+      rescue NucleusCore::Operation::Context::Error => e
+        if graph.chain_of_command?
+          next_signal = determine_signal(node, context)
+
+          return [OK, next_signal, context]
+        end
+
+        raise e
       end
 
       def prepare_context(node, context)

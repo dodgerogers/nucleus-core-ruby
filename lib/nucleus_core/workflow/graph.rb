@@ -3,14 +3,19 @@ module NucleusCore
     class Graph
       INITIAL_STATE = :initial
 
-      attr_accessor :nodes
+      attr_accessor :nodes, :execution
 
-      def initialize
+      def initialize(opts={})
         @nodes = {}
+        @execution = opts.fetch(:execution, :default)
 
         define
 
         validate_nodes!
+      end
+
+      def chain_of_command?
+        execution&.to_sym == :chain_of_command
       end
 
       def define
