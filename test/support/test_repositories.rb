@@ -1,12 +1,8 @@
 class TestRepository < NucleusCore::Repository
   def self.find(id)
-    execute do |result|
-      raise NucleusCore::NotFound.new(message: "cannot find thing with ID #{id}") if id.odd?
+    raise NucleusCore::NotFound, "cannot find thing with ID #{id}" if id.odd?
 
-      result.entity = OpenStruct.new(id: id, ref: SecureRandom.hex)
-    rescue NucleusCore::NotFound => e
-      result.exception = e
-    end
+    OpenStruct.new(id: id, ref: SecureRandom.hex)
   end
 
   def self.persist_process(_process, _attrs={})

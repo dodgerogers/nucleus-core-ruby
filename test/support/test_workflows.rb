@@ -72,3 +72,31 @@ class RollbackWorkflow < NucleusCore::Workflow::Graph
     )
   end
 end
+
+class ChainOfCommandWorkflow < NucleusCore::Workflow::Graph
+  def define
+    @execution = :chain_of_command
+
+    start_node(continue: :one)
+    add_node(
+      state: :one,
+      operation: ->(context) { context.fail!(message: "one_failed") },
+      signals: { continue: :two }
+    )
+    add_node(
+      state: :two,
+      operation: ->(context) { context.fail!(message: "two_failed") },
+      signals: { continue: :three }
+    )
+    add_node(
+      state: :three,
+      operation: ->(context) { context.fail!(message: "three_failed") },
+      signals: { continue: :four }
+    )
+    add_node(
+      state: :four,
+      operation: ->(context) { context.fail!(message: "four_failed") },
+      determine_signal: ->(_) { :wait }
+    )
+  end
+end

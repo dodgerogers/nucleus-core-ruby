@@ -54,9 +54,6 @@ NucleusCore.configure do |config|
     forbidden: AuthorizationException,
     unauthorized: AuthenticationException
   }
-  # Optional
-  config.workflow_process_repository = WorkflowProcessRepository
-  config.workflow_process_save_method = :save!
 end
 ```
 
@@ -190,21 +187,17 @@ end
 ```ruby
 class OrderRepository < NucleusCore::Repository
   def self.find(id)
-    execute do |result|
-      resp = Rest::Client.execute("https://myshop.com/orders/#{id}", :get)
+    resp = Rest::Client.execute("https://myshop.com/orders/#{id}", :get)
 
-      result.entity = DomainModels::Order.new(id: resp[:id])
-    rescue RestClient::RequestException => e
-      result.exception = e
-    end
+    DomainModels::Order.new(id: resp[:id])
+  rescue RestClient::RequestException => e
+    raise NucleusCore::NotFound.new(message: e.message)
   end
 
   def self.destroy(id)
-    execute do |result|
-      Rest::Client.execute("https://myshop.com/orders/#{id}", :delete)
-    rescue RestClient::CustomException => e
-      result.exception = e
-    end
+    Rest::Client.execute("https://myshop.com/orders/#{id}", :delete)
+  rescue RestClient::CustomException => e
+    raise NucleusCore::Unprocessable.new(message: e.message)
   end
 end
 ```

@@ -15,12 +15,11 @@ module NucleusCore
       attr_accessor :process, :graph, :context
 
       def initialize(process:, graph:, context: {})
-        @process = process || NucleusCore::Workflow::Process.new(graph.initial_state)
+        @process = process || NucleusCore::Workflow::Process.new(graph.class::INITIAL_STATE)
         @graph = graph
         @context = build_context(context)
       end
 
-      # rubocop:disable Metrics/MethodLength
       def call(signal=nil)
         signal ||= CONTINUE
         current_state = process.state
@@ -32,13 +31,11 @@ module NucleusCore
         while next_signal
           status, next_signal, @context = execute_node(current_node, context)
 
-          break if status == FAILED
+          break if status == FAILED && !graph.chain_of_command?
 
-          if process.persist(current_node.state) == false
-            context.fail!(
-              "#{graph.class.name} failed to persist process state: `#{current_node.state}`"
-            )
-          end
+          process.state = current_node.state
+
+          yield process, graph, context if block_given?
 
           current_node = graph.fetch_node(next_signal)
 
@@ -51,7 +48,6 @@ module NucleusCore
       rescue StandardError => e
         fail_context(@context, e)
       end
-      # rubocop:enable Metrics/MethodLength
 
       def rollback
         visited = process.visited.clone
@@ -62,7 +58,7 @@ module NucleusCore
           node.operation.rollback(context) if node.operation.is_a?(NucleusCore::Operation)
           node.rollback.call(context) if node.rollback.is_a?(Proc)
 
-          process.persist(state)
+          yield state, graph, context if block_given?
         end
 
         nil
@@ -86,6 +82,14 @@ module NucleusCore
         next_signal = determine_signal(node, context)
 
         [status, next_signal, context]
+      rescue NucleusCore::Operation::Context::Error => e
+        if graph.chain_of_command?
+          next_signal = determine_signal(node, context)
+
+          return [OK, next_signal, context]
+        end
+
+        raise e
       end
 
       def prepare_context(node, context)

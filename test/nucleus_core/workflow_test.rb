@@ -87,12 +87,14 @@ describe NucleusCore::Workflow do
     end
 
     describe "when persisting the workflow process" do
-      before do
-        @process = NucleusCore::Workflow::Process.new(
-          :initial,
-          persistance_service: TestRepository,
-          persistance_method: :persist_process
-        )
+      subject do
+        SimpleWorkflow.call(
+          process: @process,
+          signal: @signal,
+          context: { total: @total }
+        ) do |process, _graph, _context|
+          TestRepository.persist_process(process)
+        end
       end
 
       describe "and it succeeds" do
@@ -107,21 +109,22 @@ describe NucleusCore::Workflow do
       end
 
       describe "and it fails" do
-        before do
-          @process = NucleusCore::Workflow::Process.new(
-            :initial,
-            persistance_service: TestRepository,
-            persistance_method: :failing_persist_process
-          )
+        subject do
+          FailingWorkflow.call(
+            process: @process,
+            signal: @signal,
+            context: { total: @total }
+          ) do |process, _graph, _context|
+            TestRepository.failing_persist_process(process)
+          end
         end
 
-        it "fails the context" do
+        it "returns the expected context" do
           manager = subject
           context = manager.context
           process = manager.process
 
           refute_predicate(context, :success?)
-          assert_match(/SimpleWorkflow failed to persist process state: `started`/, context.message)
           assert_equal(:initial, process.state)
         end
       end
@@ -142,6 +145,21 @@ describe NucleusCore::Workflow do
         assert(context.exception.is_a?(NucleusCore::NotFound))
         assert_match(/not found/, context.exception.message)
         assert_equal(:initial, process.state)
+      end
+    end
+
+    describe "chain of command execution" do
+      subject do
+        ChainOfCommandWorkflow.call(context: {})
+      end
+
+      it "fails the context" do
+        manager = subject
+        context = manager.context
+        process = manager.process
+
+        refute_predicate(context, :success?)
+        assert_equal(:four, process.state)
       end
     end
   end
