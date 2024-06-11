@@ -26,8 +26,8 @@ module NucleusCore
 
     def render_entity(entity)
       return handle_context(entity) if entity.is_a?(NucleusCore::Operation::Context)
-      return render_view(entity) if subclass_of(entity, NucleusCore::View)
-      return render_view_response(entity) if subclass_of(entity, NucleusCore::View::Response)
+      return render_view(entity) if Utils.subclass_of(entity, NucleusCore::View)
+      return render_view_response(entity) if Utils.subclass_of(entity, NucleusCore::View::Response)
       return render_nothing if entity.nil?
     end
 
@@ -58,7 +58,7 @@ module NucleusCore
     def render_view_response(view_response)
       render_headers(view_response.headers)
 
-      response_adapter&.send(request_context.format, view_response)
+      response_adapter&.send(view_response.format, view_response)
     end
 
     def handle_exception(exception)
@@ -71,9 +71,7 @@ module NucleusCore
     end
 
     def render_headers(headers={})
-      unless response_adapter.respond_to?(:set_header)
-        raise NotImplementedError, "Define `set_header` for #{response_adapter.class}"
-      end
+      raise NotImplementedError unless response_adapter.respond_to?(:set_header)
 
       (headers || {}).each do |k, v|
         formatted_key = k.gsub(/\s *|_/, "-")
@@ -99,10 +97,6 @@ module NucleusCore
       else
         :internal_server_error
       end
-    end
-
-    def subclass_of(entity, *classes)
-      Set[*entity.class.ancestors].intersect?(classes.to_set)
     end
 
     def logger(object, log_level=:info)

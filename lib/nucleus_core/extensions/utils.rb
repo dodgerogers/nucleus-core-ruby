@@ -96,4 +96,17 @@ class Utils
 
     proxy_object.method(:_proc_to_lambda_).to_proc.call(*args)
   end
+
+  def self.subclass_of(entity, *classes)
+    parent_classes = entity.class.ancestors.to_set
+    parent_classes = entity.ancestors.to_set if entity.instance_of?(Class)
+
+    parent_classes.intersect?(classes.to_set)
+  end
+
+  def self.to_const(string)
+    Object.const_get(string)
+  rescue StandardError
+    nil
+  end
 end
