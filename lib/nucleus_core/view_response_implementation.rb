@@ -63,7 +63,7 @@ module NucleusCore
     end
 
     def nothing_attributes(_attrs={})
-      { content: nil, type: "text/html; charset=utf-8" }
+      { content: nil, type: "text/html; charset=utf-8", format: :nothing }
     end
   end
 end
