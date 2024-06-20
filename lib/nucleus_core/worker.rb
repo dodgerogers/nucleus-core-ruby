@@ -21,12 +21,20 @@ module NucleusCore
 
     attr_reader :args
 
+    @adapter = nil
+
     def initialize(args)
       @args = args
     end
 
+    def self.queue_adapter(adapter=nil)
+      @queue_adapter = adapter if adapter
+
+      @queue_adapter
+    end
+
     def self.call(args={})
-      adapter = args.delete(:adapter)
+      adapter = args.delete(:adapter) || queue_adapter
 
       unless Utils.subclass_of(adapter, NucleusCore::Worker::Adapter)
         raise "`#{adapter}` does not subclass `NucleusCore::Worker::Adapter`"

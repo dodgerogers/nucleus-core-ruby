@@ -4,7 +4,6 @@ describe NucleusCore::Worker do
   describe "call" do
     before do
       @args = {
-        adapter: TestWorker::Adapter,
         parameters: { key: "value" },
         other: "key"
       }
@@ -19,7 +18,22 @@ describe NucleusCore::Worker do
     describe "when the adapter is an instance of NucleusCore::Worker::Adapter" do
       before do
         @args = {
-          adapter: TestWorker::Adapter.new,
+          adapter: TestAdapter.new,
+          parameters: { key: "value" },
+          other: "key",
+          new: "key"
+        }
+      end
+
+      it "executes successfully" do
+        assert_equal("parameters, other, new", subject)
+      end
+    end
+
+    describe "when the adapter is an subclass of NucleusCore::Worker::Adapter" do
+      before do
+        @args = {
+          adapter: TestAdapter,
           parameters: { key: "value" },
           other: "key",
           new: "key"
@@ -34,7 +48,6 @@ describe NucleusCore::Worker do
     describe "when class name and method are passed" do
       before do
         @args = {
-          adapter: TestWorker::Adapter,
           class_name: TestSimpleView.name,
           method_name: :new,
           id: "id"
@@ -51,7 +64,6 @@ describe NucleusCore::Worker do
       describe "when non hash arguments are passed" do
         before do
           @args = {
-            adapter: TestWorker::Adapter,
             class_name: Array,
             method_name: :new,
             args: 3
