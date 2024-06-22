@@ -30,7 +30,7 @@ describe NucleusCore::Worker do
       end
     end
 
-    describe "when the adapter is an subclass of NucleusCore::Worker::Adapter" do
+    describe "when the adapter is a subclass of NucleusCore::Worker::Adapter" do
       before do
         @args = {
           adapter: TestAdapter,
