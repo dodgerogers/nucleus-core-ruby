@@ -22,14 +22,4 @@ Gem::Specification.new do |spec|
   spec.bindir = "exe"
   spec.executables = spec.files.grep(%r{^exe/}) { |f| File.basename(f) }
   spec.require_paths = ["lib"]
-
-  spec.add_development_dependency "minitest", "~> 5.11"
-  spec.add_development_dependency "minitest-ci", "~> 3.4"
-  spec.add_development_dependency "minitest-reporters", "~> 1.3"
-  spec.add_development_dependency "rake", "~> 13.0"
-  spec.add_development_dependency "rubocop", "~> 1.50.2"
-  spec.add_development_dependency "rubocop-minitest", "0.30.0"
-  spec.add_development_dependency "rubocop-packaging", "0.5.2"
-  spec.add_development_dependency "rubocop-performance", "1.17.1"
-  spec.add_development_dependency "rubocop-rake", "0.6.0"
 end
