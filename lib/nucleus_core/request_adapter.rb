@@ -4,9 +4,8 @@ module NucleusCore
   class RequestAdapter < NucleusCore::SimpleObject
     def initialize(attrs=nil)
       attrs ||= {}
-      attributes = defaults.merge(attrs)
 
-      super(attributes)
+      super(defaults.merge!(attrs))
     end
 
     private

@@ -16,11 +16,10 @@
 Nucleus-Core-Ruby is a set of paradigms and components to separate your business logic from your framework, and is designed so any request can be expressed into the following sequence:
 
 **Device**
-* Input received from user
+* Receives request
 -----------------------------------------------------------------------------------
 **Framework**
-* Receives request from device
-* Formats parameters and passes to a receiver
+* Formats request parameters and passes to a receiver
 -----------------------------------------------------------------------------------
 **Business Logic**
 * Authenticate
