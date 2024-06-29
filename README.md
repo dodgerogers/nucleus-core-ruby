@@ -16,29 +16,23 @@
 Nucleus-Core-Ruby is a set of paradigms and components to separate your business logic from your framework, and is designed so any request can be expressed into the following sequence:
 
 **Device**
+* Receives request
 -----------------------------------------------------------------------------------
-1. Input received from user (website, phone, printer, etc...)
-
 **Framework**
+* Formats request parameters and passes to a receiver
 -----------------------------------------------------------------------------------
-2. Receives request from device (user visits webpage, clicks printer button, etc...)
-3. Formats and passes parameters to a receiver/handler (controller, endpoint, service, etc...)
-
 **Business Logic**
+* Authenticate
+* Authorize
+* Execute Operation/Workflow
+* Interact with data source via a Repository
+* Return view object given Operation/Workfow result
 -----------------------------------------------------------------------------------
-4. Authenticate Request (optional)
-5. Authorize Request (optional)
-6. Execute Operation/Workflow (Create post/update password/init credit check)
-7. Operation calls Repository to interact with data layer (db/API/file)
-8. Return view object given context result
-
 **Framework**
+* Renders view object to the requested format
 -----------------------------------------------------------------------------------
-9. Responder renders the view object in the requested format
-
 **Device**
------------------------------------------------------------------------------------
-10. Device renders to the medium it serves
+* Device displays output to the medium it serves
 
 ## Supported Frameworks
 

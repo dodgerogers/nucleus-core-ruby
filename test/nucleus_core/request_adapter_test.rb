@@ -11,8 +11,8 @@ describe NucleusCore::RequestAdapter do
     it "sets expected properties" do
       resp = subject
 
-      assert_respond_to(resp, :format)
-      assert_respond_to(resp, :parameters)
+      assert_equal(NucleusCore.configuration.default_response_format, resp.format)
+      assert_equal(@request[:parameters], resp.parameters)
     end
   end
 end

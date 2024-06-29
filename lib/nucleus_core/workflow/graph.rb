@@ -10,8 +10,6 @@ module NucleusCore
         @execution = opts.fetch(:execution, :default)
 
         define
-
-        validate_nodes!
       end
 
       def chain_of_command?
@@ -51,17 +49,6 @@ module NucleusCore
         manager.rollback
 
         manager
-      end
-
-      private
-
-      def validate_nodes!
-        start_nodes = nodes.values.count do |node|
-          node.state == INITIAL_STATE
-        end
-
-        raise ArgumentError, "#{self.class}: missing `:initial` start node" if start_nodes.zero?
-        raise ArgumentError, "#{self.class}: more than one start node detected" if start_nodes > 1
       end
     end
   end
