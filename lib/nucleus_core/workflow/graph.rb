@@ -3,7 +3,7 @@ module NucleusCore
     class Graph
       INITIAL_STATE = :initial
 
-      attr_accessor :nodes, :execution
+      attr_reader :nodes, :execution
 
       def initialize(opts={})
         @nodes = {}
@@ -13,10 +13,11 @@ module NucleusCore
       end
 
       def chain_of_command?
-        execution&.to_sym == :chain_of_command
+        execution == :chain_of_command
       end
 
       def define
+        raise NotImplementedError, "Subclasses must implement the define method"
       end
 
       def start_node(signals={})
@@ -24,7 +25,8 @@ module NucleusCore
       end
 
       def add_node(node_attrs={})
-        raise ArgumentError.new(message: "state `#{state}` is already defined") if nodes.key(node_attrs[:state])
+        state = node_attrs[:state]
+        raise ArgumentError, "state #{state} is already defined" if nodes.key?(state)
 
         NucleusCore::Workflow::Node.new(node_attrs).tap do |node|
           nodes[node.state] = node
@@ -37,17 +39,13 @@ module NucleusCore
 
       def self.call(signal: nil, process: nil, context: nil)
         manager = NucleusCore::Workflow::Manager.new(process: process, context: context, graph: new)
-
         manager.call(signal)
-
         manager
       end
 
       def self.rollback(process:, context:)
         manager = NucleusCore::Workflow::Manager.new(process: process, context: context, graph: new)
-
         manager.rollback
-
         manager
       end
     end

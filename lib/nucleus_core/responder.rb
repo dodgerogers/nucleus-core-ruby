@@ -1,6 +1,50 @@
 require "set"
 
 module NucleusCore
+  # The Responder class is responsible for managing the lifecycle of a request-response
+  # interaction within the NucleusCore framework. It serves as a bridge between the
+  # incoming request and the outgoing response, handling the request processing, entity
+  # rendering, and error handling.
+  #
+  # Purpose:
+  # - To adapt and process the incoming request using the provided request adapter.
+  # - To capture the response entity and render it appropriately based on its type.
+  # - To handle exceptions that occur during the request processing and render appropriate
+  #   error responses.
+  #
+  # Key Responsibilities:
+  # - Initializing with request and response adapters.
+  # - Executing the main request handling logic within a block, capturing the context,
+  #   and rendering the resulting entity.
+  # - Rendering different types of entities, such as views and operation contexts.
+  # - Handling exceptions and rendering error views based on the type of exception.
+  #
+  # Attributes:
+  # - `request_adapter`: Adapter used to process the incoming request.
+  # - `response_adapter`: Adapter used to render the outgoing response.
+  # - `request_context`: Context of the current request, containing request-specific
+  #   attributes and data.
+  #
+  # Methods:
+  # - `initialize`: Sets up the responder with the given request and response adapters.
+  # - `execute`: Executes the request handling logic within a block and renders the
+  #   resulting entity. Handles any exceptions that occur.
+  # - `render_entity`: Renders the given entity based on its type (context, view, view
+  #   response, or nil).
+  # - `handle_context`: Renders the appropriate view based on the success or failure of
+  #   the given context.
+  # - `render_nothing`: Renders an empty response.
+  # - `render_view`: Renders a view based on the request format.
+  # - `render_view_response`: Sends the view response using the response adapter.
+  # - `handle_exception`: Logs and renders an error view based on the exception type.
+  # - `render_headers`: Sets the response headers using the response adapter.
+  # - `exception_to_status`: Maps exceptions to HTTP status codes.
+  # - `logger`: Logs messages using the configured logger.
+  #
+  # Note:
+  # - This class relies on external adapters and configurations provided by the
+  #   NucleusCore framework to function correctly.
+  #
   class Responder
     attr_accessor :response_adapter, :request_adapter, :request_context
 

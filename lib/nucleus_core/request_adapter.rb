@@ -1,5 +1,3 @@
-require "nucleus_core/simple_object"
-
 module NucleusCore
   class RequestAdapter < NucleusCore::SimpleObject
     def initialize(attrs=nil)

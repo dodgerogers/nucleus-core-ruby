@@ -19,3 +19,18 @@ class TestOperation < NucleusCore::Operation
     context.total -= 1
   end
 end
+
+class DummyOperation < NucleusCore::Operation
+  def required_args
+    %i[arg1 arg2]
+  end
+
+  def call
+    validate_required_args!
+    context.entity = OpenStruct.new(name: "Dummy")
+  end
+
+  def rollback
+    context.rollback_called = true
+  end
+end

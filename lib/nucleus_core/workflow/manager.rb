@@ -1,6 +1,36 @@
 # rubocop:disable Metrics/PerceivedComplexity, Metrics/CyclomaticComplexity, Metrics/AbcSize:
 module NucleusCore
   module Workflow
+    # The Manager class orchestrates the execution and management of workflow processes
+    # within the NucleusCore framework. It leverages a graph of nodes to determine the
+    # sequence of operations based on signals and the current state of the process.
+    #
+    # Key Features:
+    # - Workflow Execution: Manages the progression through the workflow nodes based on
+    #   signals, executing node operations, and updating the process state.
+    # - Context Management: Utilizes a context object to maintain and manipulate the state
+    #   and data throughout the workflow execution.
+    # - Error Handling: Handles and logs errors encountered during the workflow execution,
+    #   providing mechanisms for rolling back operations if needed.
+    #
+    # Usage:
+    # - Instantiate the Manager with a process, graph, and context.
+    # - Use the `call` method to execute the workflow, optionally providing a signal to start with.
+    # - Use the `rollback` method to revert the operations performed during the workflow execution.
+    #
+    # Example:
+    # manager = NucleusCore::Workflow::Manager.new(process: my_process, graph: my_graph, context: my_context)
+    # manager.call
+    #
+    # Attributes:
+    # - process: The workflow process, representing the current state and history of the execution.
+    # - graph: The workflow graph, defining the nodes and transitions based on signals.
+    # - context: The context object, maintaining the state and data throughout the workflow.
+    #
+    # Methods:
+    # - call: Executes the workflow, progressing through nodes based on signals and updating the process state.
+    # - rollback: Reverts the operations performed during the workflow execution, providing a mechanism for recovery.
+    #
     class Manager
       # Signals
       #########################################################################
@@ -12,7 +42,7 @@ module NucleusCore
       OK = :ok
       FAILED = :failed
 
-      attr_accessor :process, :graph, :context
+      attr_reader :process, :graph, :context
 
       def initialize(process:, graph:, context: {})
         @process = process || NucleusCore::Workflow::Process.new(graph.class::INITIAL_STATE)
@@ -93,19 +123,24 @@ module NucleusCore
       end
 
       def prepare_context(node, context)
-        return node.prepare_context.call(context) if node.prepare_context.is_a?(Proc)
-        return send(node.prepare_context, context) if node.prepare_context.is_a?(Symbol)
-
-        context
+        if node.prepare_context.is_a?(Proc)
+          node.prepare_context.call(context)
+        elsif node.prepare_context.is_a?(Symbol)
+          send(node.prepare_context, context)
+        else
+          context
+        end
       end
 
       def determine_signal(node, context)
         signal = CONTINUE
-        signal = node.determine_signal.call(context) if node.determine_signal.is_a?(Proc)
-        signal = send(node.determine_signal, context) if node.determine_signal.is_a?(Symbol)
-        node_signals = node.signals || {}
+        if node.determine_signal.is_a?(Proc)
+          signal = node.determine_signal.call(context)
+        elsif node.determine_signal.is_a?(Symbol)
+          signal = send(node.determine_signal, context)
+        end
 
-        node_signals[signal]
+        node.signals&.dig(signal)
       end
 
       def fail_context(context, exception)
