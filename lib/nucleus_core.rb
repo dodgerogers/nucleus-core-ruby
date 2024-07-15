@@ -13,6 +13,7 @@ module NucleusCore
   autoload :Policy, "nucleus_core/policy"
   autoload :Repository, "nucleus_core/repository"
   autoload :View, "nucleus_core/view"
+  autoload :Connector, "nucleus_core/connector"
 
   extensions = File.join(__dir__, "nucleus_core", "extensions", "*.rb")
   exceptions = File.join(__dir__, "nucleus_core", "exceptions.rb")
