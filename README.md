@@ -13,13 +13,13 @@
 
 ## Overview
 
-Nucleus-Core-Ruby is a set of paradigms and components to separate your business logic from your framework, and is designed so any request can be expressed into the following sequence:
+Nucleus-Core-Ruby provides a structure to separate your business logic from your framework, streamlining request handling as follows:
 
 **Device**
 * Receives request
 -----------------------------------------------------------------------------------
 **Framework**
-* Formats request parameters and passes to a receiver
+* Formats request parameters and passes them to a receiver
 -----------------------------------------------------------------------------------
 **Business Logic**
 * Authenticate
@@ -33,6 +33,34 @@ Nucleus-Core-Ruby is a set of paradigms and components to separate your business
 -----------------------------------------------------------------------------------
 **Device**
 * Device displays output to the medium it serves
+
+## Getting started
+
+1. Install the gem
+
+```ruby
+gem install 'nucleus-core'
+```
+
+2. Initialize and configure
+
+```ruby
+require "nucleus-core"
+
+NucleusCore.configure do |config|
+  config.logger = Logger.new($stdout)
+  config.default_response_format = :json
+  config.request_exceptions = {
+    not_found: RecordNotFound,
+    unprocessible: [RecordInvalid, RecordNotSaved],
+    bad_request: ArgumentError,
+    forbidden: NotPermittedError,
+    unauthorized: UnAuthenticatedError
+  }
+end
+```
+
+3. Refer to the 'How-To' section for guidance on expressing your business logic.
 
 ## Supported Frameworks
 
