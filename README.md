@@ -15,6 +15,7 @@
 
 Nucleus-Core-Ruby provides a structure to separate your business logic from your framework, streamlining request handling as follows:
 
+```
 **Device**
 * Receives request
 -----------------------------------------------------------------------------------
@@ -33,6 +34,7 @@ Nucleus-Core-Ruby provides a structure to separate your business logic from your
 -----------------------------------------------------------------------------------
 **Device**
 * Device displays output to the medium it serves
+```
 
 ## Getting started
 
