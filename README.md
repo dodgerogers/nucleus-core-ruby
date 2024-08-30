@@ -13,7 +13,7 @@
 
 ## Overview
 
-Nucleus-Core-Ruby provides a structure to separate your business logic from your framework, streamlining request handling as follows:
+Nucleus-Core-Ruby is an opinionated way to express business logic agnostically to your framework, and prescribes request/response handling as follows:
 
 ```
 **Device**
