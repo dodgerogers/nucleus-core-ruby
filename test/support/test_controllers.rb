@@ -26,7 +26,7 @@ class TestController
     request = init_request(params)
 
     responder.execute(request) do |req|
-      context = TestOperation.call(req.parameters)
+      context = TallyOperation.call(req.parameters)
 
       return TestSimpleView.new(total: context.total) if context.success?
 
@@ -57,7 +57,7 @@ class TestController
     request = init_request(params)
 
     responder.execute(request) do |_req|
-      return TestSimpleView.new(total: 0).csv_response
+      return TestSimpleView.new(total: 0).csv
     end
   end
 

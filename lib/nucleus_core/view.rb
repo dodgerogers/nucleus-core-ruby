@@ -5,7 +5,7 @@ module NucleusCore
   class View < NucleusCore::SimpleObject
     class Response < NucleusCore::ViewResponseImplementation; end
 
-    def json_response
+    def json
       NucleusCore::View::Response.new(:json, content: to_h, status: :ok)
     end
   end

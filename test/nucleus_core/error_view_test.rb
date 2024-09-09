@@ -17,8 +17,8 @@ describe NucleusCore::ErrorView do
       assert_equal(3, view.to_h.keys.length)
     end
 
-    it "implements `json_response`" do
-      response = subject.json_response
+    it "implements `json`" do
+      response = subject.json
 
       assert_equal(:json, response.format)
       assert_equal(404, response.status)

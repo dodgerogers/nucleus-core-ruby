@@ -91,7 +91,7 @@ module NucleusCore
     end
 
     def render_view(view)
-      view_format = "#{request_context.format}_response".to_sym
+      view_format = request_context.format.to_sym
       view_response = view.send(view_format) if view.respond_to?(view_format)
 
       raise NucleusCore::BadRequest, "`#{request_context.format}` is not supported" if view_response.nil?

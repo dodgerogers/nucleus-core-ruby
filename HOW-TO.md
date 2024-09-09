@@ -117,15 +117,15 @@ class OrderView < NucleusCore::View
     super(attributes)
   end
 
-  def json_response
+  def json
     NucleusCore::View::Response.new(format: :json, content: to_h)
   end
 
-  def csv_response
+  def csv
     NucleusCore::View::Response.new(format: :csv, content: generat_csv(self))
   end
 
-  def pdf_response
+  def pdf
     NucleusCore::View::Response.new(format: :pdf, content: generat_pdf(self))
   end
 end
