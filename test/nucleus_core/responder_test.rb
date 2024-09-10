@@ -81,6 +81,16 @@ describe NucleusCore::Responder do
         end
       end
     end
+
+    describe "when format is not given" do
+      subject { TestController.new.no_format }
+
+      it "renders expected default content type" do
+        response = subject
+
+        assert_equal(:json, response.format)
+      end
+    end
   end
 
   describe "failure" do

@@ -69,6 +69,15 @@ class TestController
     end
   end
 
+  def no_format(params={})
+    request = init_request(params)
+    request[:format] = nil
+
+    responder.execute(request) do |_req|
+      return TestSimpleView.new(total: 0)
+    end
+  end
+
   def nothing_extended(params={})
     request = init_request(params)
 
