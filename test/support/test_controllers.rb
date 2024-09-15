@@ -70,7 +70,7 @@ class TestController
   end
 
   def no_format(params={})
-    request = init_request(params)
+    request = init_request(params.merge(format: nil))
     request[:format] = nil
 
     responder.execute(request) do |_req|
@@ -83,6 +83,14 @@ class TestController
 
     responder.execute(request) do |_req|
       return NucleusCore::View::Response.new(:nothing, headers: { "nothing" => "header" })
+    end
+  end
+
+  def unsupported_html_format_requested(params={})
+    request = init_request(params.merge!(format: :html))
+
+    responder.execute(request) do |_req|
+      return TestSimpleView.new(total: 0)
     end
   end
 
