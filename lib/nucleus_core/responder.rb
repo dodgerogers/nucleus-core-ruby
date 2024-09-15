@@ -91,12 +91,18 @@ module NucleusCore
     end
 
     def render_view(view)
-      view_format = "#{request_context.format}_response".to_sym
+      view_format = request_context.format.to_sym
       view_response = view.send(view_format) if view.respond_to?(view_format)
-
-      raise NucleusCore::BadRequest, "`#{request_context.format}` is not supported" if view_response.nil?
+      view_response = default_view_response if view_response.nil?
 
       render_view_response(view_response)
+    end
+
+    def default_view_response
+      default_resp_format = NucleusCore.configuration.default_response_format || :json
+      default_resp_attrs = request_context.to_h.merge(format: default_resp_format)
+
+      NucleusCore::View::Response.new(default_resp_format, default_resp_attrs)
     end
 
     def render_view_response(view_response)

@@ -3,7 +3,15 @@ module NucleusCore
     def initialize(attrs=nil)
       attrs ||= {}
 
-      super(defaults.merge!(attrs))
+      super(
+        defaults.merge!(attrs) do |k, v1, v2|
+          if (k == :format && v2.nil?) || v2.empty?
+            v1
+          else
+            v2
+          end
+        end
+      )
     end
 
     private

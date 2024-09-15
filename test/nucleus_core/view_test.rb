@@ -13,8 +13,8 @@ describe NucleusCore::View do
     end
   end
 
-  it "implements `json_response`" do
-    response = subject.json_response
+  it "implements `json`" do
+    response = subject.json
 
     assert_equal(:json, response.format)
     assert_equal(200, response.status)

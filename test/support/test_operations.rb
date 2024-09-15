@@ -1,4 +1,4 @@
-class TestOperation < NucleusCore::Operation
+class TallyOperation < NucleusCore::Operation
   def required_args
     [:total]
   end

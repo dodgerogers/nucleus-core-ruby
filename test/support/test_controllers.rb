@@ -26,7 +26,7 @@ class TestController
     request = init_request(params)
 
     responder.execute(request) do |req|
-      context = TestOperation.call(req.parameters)
+      context = TallyOperation.call(req.parameters)
 
       return TestSimpleView.new(total: context.total) if context.success?
 
@@ -57,7 +57,7 @@ class TestController
     request = init_request(params)
 
     responder.execute(request) do |_req|
-      return TestSimpleView.new(total: 0).csv_response
+      return TestSimpleView.new(total: 0).csv
     end
   end
 
@@ -69,11 +69,28 @@ class TestController
     end
   end
 
+  def no_format(params={})
+    request = init_request(params.merge(format: nil))
+    request[:format] = nil
+
+    responder.execute(request) do |_req|
+      return TestSimpleView.new(total: 0)
+    end
+  end
+
   def nothing_extended(params={})
     request = init_request(params)
 
     responder.execute(request) do |_req|
       return NucleusCore::View::Response.new(:nothing, headers: { "nothing" => "header" })
+    end
+  end
+
+  def unsupported_html_format_requested(params={})
+    request = init_request(params.merge!(format: :html))
+
+    responder.execute(request) do |_req|
+      return TestSimpleView.new(total: 0)
     end
   end
 
