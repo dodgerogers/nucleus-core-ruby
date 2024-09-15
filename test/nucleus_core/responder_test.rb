@@ -95,11 +95,13 @@ describe NucleusCore::Responder do
     describe "when view does not implement the requested html format" do
       subject { TestController.new.unsupported_html_format_requested }
 
-      it "renders expected default json content type" do
+      it "renders error in `default_response_format`" do
         response = subject
 
         assert_equal(:json, response.format)
         assert_equal(NucleusCore.configuration.default_response_format, response.format)
+        assert_equal(:bad_request, response.content[:status])
+        assert_equal("`html` is not supported", response.content[:message])
       end
 
       describe "and `default_response_format` is not defined" do
@@ -114,10 +116,12 @@ describe NucleusCore::Responder do
           NucleusCore.configuration.default_response_format = @default_response_format
         end
 
-        it "renders default json content type" do
+        it "renders error in fallback `json` content type" do
           response = subject
 
           assert_equal(:json, response.format)
+          assert_equal(:bad_request, response.content[:status])
+          assert_equal("`html` is not supported", response.content[:message])
         end
       end
     end
