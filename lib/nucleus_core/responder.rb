@@ -38,7 +38,7 @@ module NucleusCore
   # - `render_view_response`: Sends the view response using the response adapter.
   # - `handle_exception`: Logs and renders an error view based on the exception type.
   # - `render_headers`: Sets the response headers using the response adapter.
-  # - `exception_to_status`: Maps exceptions to HTTP status codes.
+  # - `infer_status`: Maps exceptions to HTTP status codes.
   # - `logger`: Logs messages using the configured logger.
   #
   # Note:
@@ -107,31 +107,19 @@ module NucleusCore
     end
 
     def render_view_response(view_response)
-      render_headers(view_response.headers)
-
       response_adapter&.send(view_response.format, view_response)
     end
 
     def handle_exception(exception)
       logger(exception, :error)
 
-      status = exception_to_status(exception)
+      status = infer_status(exception)
       view = NucleusCore::ErrorView.new(message: exception.message, status: status)
 
       render_view(view)
     end
 
-    def render_headers(headers={})
-      raise NotImplementedError unless response_adapter.respond_to?(:set_header)
-
-      (headers || {}).each do |k, v|
-        formatted_key = k.gsub(/\s *|_/, "-")
-
-        response_adapter&.set_header(formatted_key, v)
-      end
-    end
-
-    def exception_to_status(exception)
+    def infer_status(exception)
       exceptions = NucleusCore.configuration.request_exceptions
 
       case exception

@@ -12,7 +12,6 @@ describe NucleusCore::Responder do
       assert_nil(response.headers)
       assert_equal(200, response.status)
       assert_nil(response.location)
-      assert_equal("application/json", response.type)
     end
 
     %i[json xml text pdf csv].each do |request_format|

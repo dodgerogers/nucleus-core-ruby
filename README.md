@@ -51,7 +51,10 @@ require "nucleus-core"
 
 NucleusCore.configure do |config|
   config.logger = Logger.new($stdout)
-  config.default_response_format = :json
+  config.default_response_format = :json # defaults to :json
+  # The request_exceptions attribute allows you to define custom exception handling for different
+  # HTTP error types. The keys are standard error names like :bad_request, :unauthorized, and :not_found,
+  # and the values are the exception classes or errors you want to handle for each case.
   config.request_exceptions = {
     not_found: RecordNotFound,
     unprocessible: [RecordInvalid, RecordNotSaved],
