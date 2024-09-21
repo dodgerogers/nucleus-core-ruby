@@ -23,13 +23,12 @@ module NucleusCore
   end
 
   class Configuration
-    attr_accessor :default_response_format, :logger, :response_formats
+    attr_accessor :default_response_format, :logger
     attr_reader :request_exceptions
 
     def initialize
       @logger = nil
       @request_exceptions = format_request_exceptions
-      @response_formats = {}
     end
 
     def request_exceptions=(args={})
