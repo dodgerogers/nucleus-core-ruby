@@ -49,13 +49,31 @@ require "nucleus-core"
 
 NucleusCore.configure do |config|
   config.logger = Logger.new($stdout)
-  config.default_response_format = :json
+  config.default_response_format = :json # defaults to :json
+  # The request_exceptions attribute allows you to define custom exception handling for different
+  # HTTP error types. The keys are standard error names like :bad_request, :unauthorized, and :not_found,
+  # and the values are the exception classes or errors you want to handle for each case.
   config.request_exceptions = {
     not_found: RecordNotFound,
     unprocessible: [RecordInvalid, RecordNotSaved],
     bad_request: ArgumentError,
     forbidden: NotPermittedError,
     unauthorized: UnAuthenticatedError
+  }
+  # The response_types configuration allows specifying different formats for API responses.
+  # Each key represents a format (e.g., :csv, :pdf, :json, etc...), and the associated value is a hash
+  # defining attributes for rendering that format. Common attributes include disposition (how
+  # the file is served, e.g., inline or as an attachment), type (MIME type), and filename
+  # (suggested name for attachments). This setup makes it easy to support multiple content types
+  # in API responses, handling various client preferences like JSON, XML, or file downloads.
+  config.response_formats = {
+    csv: { disposition: "attachment", type: "text/csv; charset=UTF-8;", filename: "response.csv" },
+    pdf: { disposition: "inline", type: "application/pdf", filename: "response.pdf" },
+    json: { type: "application/json", format: :json },
+    xml: { type: "application/xml", format: :xml },
+    html: { type: "text/html", format: :html },
+    text: { type: "text/plain", format: :text },
+    nothing: { content: nil, type: "text/html; charset=utf-8", format: :nothing }
   }
 end
 ```
