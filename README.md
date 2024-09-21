@@ -60,21 +60,6 @@ NucleusCore.configure do |config|
     forbidden: NotPermittedError,
     unauthorized: UnAuthenticatedError
   }
-  # The response_types configuration allows specifying different formats for API responses.
-  # Each key represents a format (e.g., :csv, :pdf, :json, etc...), and the associated value is a hash
-  # defining attributes for rendering that format. Common attributes include disposition (how
-  # the file is served, e.g., inline or as an attachment), type (MIME type), and filename
-  # (suggested name for attachments). This setup makes it easy to support multiple content types
-  # in API responses, handling various client preferences like JSON, XML, or file downloads.
-  config.response_formats = {
-    csv: { disposition: "attachment", type: "text/csv; charset=UTF-8;", filename: "response.csv" },
-    pdf: { disposition: "inline", type: "application/pdf", filename: "response.pdf" },
-    json: { type: "application/json", format: :json },
-    xml: { type: "application/xml", format: :xml },
-    html: { type: "text/html", format: :html },
-    text: { type: "text/plain", format: :text },
-    nothing: { content: nil, type: "text/html; charset=utf-8", format: :nothing }
-  }
 end
 ```
 
