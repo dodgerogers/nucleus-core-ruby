@@ -29,7 +29,6 @@ module NucleusCore
     def initialize
       @logger = nil
       @request_exceptions = format_request_exceptions
-      @default_response_format = :json
     end
 
     def request_exceptions=(args={})
