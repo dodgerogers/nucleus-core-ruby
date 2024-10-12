@@ -107,7 +107,7 @@ module NucleusCore
     end
 
     def render_view_response(view_response)
-      response_adapter&.send(view_response.format, view_response)
+      response_adapter.call(view_response)
     end
 
     def handle_exception(exception)
