@@ -2,7 +2,7 @@ Copyright (c) 2023 dodgerogers
 
 Nucleus Software License Agreement
 
-This License Agreement ("Agreement") is a legal agreement between you (either an individual or a single entity) and [Your Company Name] ("Licensor") for the software product named Nucleus, including any associated media, printed materials, and electronic documentation (collectively referred to as the "Software").
+This License Agreement ("Agreement") is a legal agreement between you (either an individual or a single entity) and Nucleus Framework ("Licensor") for the software product named Nucleus, including any associated media, printed materials, and electronic documentation (collectively referred to as the "Software").
 
 BY INSTALLING, COPYING, OR OTHERWISE USING THE SOFTWARE, YOU AGREE TO BE BOUND BY THE TERMS OF THIS AGREEMENT. IF YOU DO NOT AGREE TO THE TERMS OF THIS AGREEMENT, DO NOT INSTALL OR USE THE SOFTWARE.
 
@@ -26,12 +26,12 @@ BY INSTALLING, COPYING, OR OTHERWISE USING THE SOFTWARE, YOU AGREE TO BE BOUND B
    TO THE MAXIMUM EXTENT PERMITTED BY APPLICABLE LAW, IN NO EVENT SHALL LICENSOR BE LIABLE FOR ANY INDIRECT, SPECIAL, INCIDENTAL, CONSEQUENTIAL, OR EXEMPLARY DAMAGES ARISING OUT OF OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THE SOFTWARE, WHETHER IN AN ACTION OF CONTRACT, NEGLIGENCE, OR OTHER TORTIOUS ACTION, EVEN IF LICENSOR HAS BEEN ADVISED OF THE POSSIBILITY OF SUCH DAMAGES.
 
 6. Governing Law:
-   This Agreement shall be governed by and construed in accordance with the laws of [Your Jurisdiction], excluding its conflict of law principles.
+   This Agreement shall be governed by and construed in accordance with the laws of Canada, excluding its conflict of law principles.
 
 7. Entire Agreement:
    This Agreement constitutes the entire agreement between the parties concerning the subject matter hereof and supersedes all prior or contemporaneous agreements, understandings, and representations, whether oral or written.
 
 8. Contact Information:
-   If you have any questions about this Agreement, please contact [Your Company Name] at [Your Contact Information].
+   If you have any questions about this Agreement, please contact Nucleus Framework at __________.
 
 By accepting this Agreement, you acknowledge that you have read and understood its terms and agree to be bound by them.
