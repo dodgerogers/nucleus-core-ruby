@@ -75,7 +75,7 @@ If you want to report a bug, or have ideas, feedback or questions about the gem,
 
 ## License
 
-The gem is available as open source under the terms of the [MIT License](LICENSE.txt).
+The gem is available under the terms of the [proprietary software license](LICENSE.txt).
 
 ## Code of conduct
 
