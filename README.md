@@ -75,7 +75,7 @@ end
 
 ## Support
 
-If you want to report a bug, or have ideas, feedback or questions about the gem, [let me know via GitHub issues](https://github.com/dodgerogers/nucleus_core/issues/new) and we will do our best to provide a helpful answer.
+If you want to report a bug, or have ideas, feedback or questions about the gem, [let me know via GitHub issues](https://github.com/dodgerogers/nucleus_core/issues/new) and we will do our best to provide a helpful answer, and if you'd like to support the mission [donate](paypal.me/Dodgerogers)
 
 ## License
 
