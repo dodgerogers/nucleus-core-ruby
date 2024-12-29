@@ -13,30 +13,32 @@
 
 ## Overview
 
-Nucleus-Core-Ruby is an opinionated way to express business logic agnostically to your framework, and prescribes request/response handling as follows:
+Nucleus Core provides a framework-agnostic foundation for encapsulating domain logic enabling seamless integration across various platforms and mediums.
 
-### Device
+It prescribes that a request is broken down as follows:
+
+#### Device
 * Receives request
 -----------------------------------------------------------------------------------
 
-### Framework
+#### Framework
 * Formats request parameters and passes them to a receiver
 -----------------------------------------------------------------------------------
 
-### Business Logic**
-* Authenticate
-* Authorize
+#### Business Logic**
+* Authenticate & Authorize
 * Execute Operation/Workflow
-* Interact with data source via a Repository
-* Return view object given Operation/Workfow result
+* Interact with data via repository
+* Return a view object
 -----------------------------------------------------------------------------------
 
-### Framework
-* Renders view object to the requested format
+#### Framework
+* Renders view object given the requested format
 -----------------------------------------------------------------------------------
 
-### Device
-* Device displays output in the medium it serves
+#### Device
+* Device displays output to the medium it serves
+-----------------------------------------------------------------------------------
 
 ## Getting started
 
