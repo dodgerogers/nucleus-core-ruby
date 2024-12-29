@@ -17,28 +17,33 @@ Nucleus Core provides a framework-agnostic foundation for encapsulating domain l
 
 It prescribes that a request is broken down as follows:
 
-#### Device
-* Receives request
------------------------------------------------------------------------------------
+#### 1. Device
+- Receives request  
 
-#### Framework
-* Formats request parameters and passes them to a receiver
------------------------------------------------------------------------------------
+---
 
-#### Business Logic**
-* Authenticate & Authorize
-* Execute Operation/Workflow
-* Interact with data via repository
-* Return a view object
------------------------------------------------------------------------------------
+#### 2. Framework
+- Formats request parameters and passes them to a receiver  
 
-#### Framework
-* Renders view object given the requested format
------------------------------------------------------------------------------------
+---
 
-#### Device
-* Device displays output to the medium it serves
------------------------------------------------------------------------------------
+#### 3. Nucleus
+- Authenticate & Authorize (if applicable)
+- Execute an operation or workflow  
+- Interact with data via a repository  
+- Return a view object  
+
+---
+
+#### 4. Framework
+- Renders the view object in the requested format  
+
+---
+
+#### 5. Device
+- Displays the output to the medium it serves  
+
+---
 
 ## Getting started
 
@@ -69,7 +74,7 @@ NucleusCore.configure do |config|
 end
 ```
 
-3. Refer to the 'How-To' section for guidance on expressing your business logic.
+3. Refer to the [how to](HOW-TO.md) section for guidance on writing business logic.
 
 ## Supported Frameworks
 
