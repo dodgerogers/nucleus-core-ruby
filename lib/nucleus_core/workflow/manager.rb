@@ -65,7 +65,7 @@ module NucleusCore
 
           process.state = current_node.state
 
-          yield process, graph, context if block_given?
+          yield process.state if block_given?
 
           current_node = graph.fetch_node(next_signal)
 
@@ -88,7 +88,7 @@ module NucleusCore
           node.operation.rollback(context) if node.operation.is_a?(NucleusCore::Operation)
           node.rollback.call(context) if node.rollback.is_a?(Proc)
 
-          yield state, graph, context if block_given?
+          yield state if block_given?
         end
 
         nil

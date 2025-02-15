@@ -37,7 +37,7 @@ module NucleusCore
     # - Handles the state of the operation, including success and failure states.
     # - Provides a method to mark the operation as failed and raise an appropriate error.
     #
-    class Context < OpenStruct
+    class Context < SimpleObject
       class Error < StandardError; end
 
       attr_reader :failure
@@ -81,7 +81,7 @@ module NucleusCore
     end
 
     def validate_required_args!
-      missing_args = (required_args || []).reject { |arg| context.respond_to?(arg) }
+      missing_args = (required_args || []).reject { |arg| context.key?(arg) }
       yield missing_args if block_given?
       return if missing_args.empty?
 
