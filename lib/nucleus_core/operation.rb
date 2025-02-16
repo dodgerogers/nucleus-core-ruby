@@ -37,7 +37,7 @@ module NucleusCore
     # - Handles the state of the operation, including success and failure states.
     # - Provides a method to mark the operation as failed and raise an appropriate error.
     #
-    class Context < SimpleObject
+    class Context < Entity
       class Error < StandardError; end
 
       attr_reader :failure

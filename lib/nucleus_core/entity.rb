@@ -3,7 +3,7 @@
 require "forwardable"
 
 module NucleusCore
-  # SimpleObject provides a flexible attribute container with dynamic method access.
+  # Entity provides a flexible attribute container with dynamic method access.
   #
   # This class acts as a simple key-value store where attributes can be accessed
   # and modified dynamically using both method calls and hash-like access.
@@ -16,12 +16,12 @@ module NucleusCore
   # - Supports `dig` and `delete` via delegation.
   #
   # Example Usage:
-  #   obj = NucleusCore::SimpleObject.new(foo: "bar")
+  #   obj = NucleusCore::Entity.new(foo: "bar")
   #   obj.foo  # => "bar"
   #   obj[:foo] # => "bar"
   #   obj.foo = "baz"
   #   obj.to_h  # => { foo: "baz" }
-  class SimpleObject
+  class Entity
     extend Forwardable
 
     def_delegators :@__attributes__, :dig, :delete

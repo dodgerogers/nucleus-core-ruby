@@ -1,1 +1,1 @@
-class TestObject < NucleusCore::SimpleObject; end
+class TestObject < NucleusCore::Entity; end

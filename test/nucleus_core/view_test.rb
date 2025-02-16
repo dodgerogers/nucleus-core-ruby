@@ -9,7 +9,7 @@ describe NucleusCore::View do
     end
 
     it "has expected subclass" do
-      assert_equal(NucleusCore::SimpleObject, NucleusCore::View.superclass)
+      assert_equal(NucleusCore::Entity, NucleusCore::View.superclass)
     end
   end
 
