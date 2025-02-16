@@ -100,3 +100,23 @@ class ChainOfCommandWorkflow < NucleusCore::Workflow::Graph
     )
   end
 end
+
+class WorkflowCallingWorkflow < NucleusCore::Workflow::Graph
+  def define
+    start_node(continue: :first_graph)
+    add_node(
+      state: :first_graph,
+      operation: ->(context) { SimpleWorkflow.call(context: context) },
+      signals: { continue: :second_graph }
+    )
+    add_node(
+      state: :second_graph,
+      operation: ->(context) { SimpleWorkflow.call(context: context) },
+      signals: { continue: :finished }
+    )
+    add_node(
+      state: :finished,
+      determine_signal: ->(_) { :wait }
+    )
+  end
+end

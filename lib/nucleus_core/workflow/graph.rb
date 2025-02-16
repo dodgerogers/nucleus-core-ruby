@@ -39,18 +39,18 @@ module NucleusCore
 
       def self.call(signal: nil, process: nil, context: nil)
         manager = NucleusCore::Workflow::Manager.new(process: process, context: context, graph: new)
-        context = manager.call(signal) { |p| handle_execution_step(p) }
+        context = manager.call(signal) { |state| handle_execution_step(state) }
 
-        yield manager.process if block_given?
+        yield manager if block_given?
 
         context
       end
 
       def self.rollback(process:, context:)
         manager = NucleusCore::Workflow::Manager.new(process: process, context: context, graph: new)
-        context = manager.rollback { |p| handle_revertion_step(p) }
+        context = manager.rollback { |state| handle_revertion_step(state) }
 
-        yield manager.process if block_given?
+        yield manager if block_given?
 
         context
       end
