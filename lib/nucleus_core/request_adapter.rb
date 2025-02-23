@@ -1,5 +1,5 @@
 module NucleusCore
-  class RequestAdapter < NucleusCore::SimpleObject
+  class RequestAdapter < NucleusCore::Entity
     def initialize(attrs=nil)
       attrs ||= {}
 

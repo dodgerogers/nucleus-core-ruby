@@ -1,5 +1,5 @@
 module NucleusCore
-  class ViewResponseImplementation < NucleusCore::SimpleObject
+  class ViewResponseImplementation < NucleusCore::Entity
     def initialize(format, attrs={})
       status = status_code(attrs[:status])
 

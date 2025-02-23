@@ -4,7 +4,8 @@ describe NucleusCore::Workflow do
   describe "#call" do
     before do
       @total = 0
-      @process = nil
+      @initial_state = SimpleWorkflow::INITIAL_STATE
+      @process = NucleusCore::Workflow::Process.new(@initial_state)
       @signal = nil
     end
 
@@ -12,13 +13,9 @@ describe NucleusCore::Workflow do
 
     describe "with nil context, and signal" do
       it "returns the expected context, and process state" do
-        manager = subject
-        context = manager.context
-        process = manager.process
-
-        assert_predicate(context, :success?)
-        assert_equal(3, context.total)
-        assert_equal(:stopped, process.state)
+        assert_predicate(subject, :success?)
+        assert_equal(3, subject.total)
+        assert_equal(:stopped, @process.state)
       end
     end
 
@@ -29,13 +26,19 @@ describe NucleusCore::Workflow do
       end
 
       it "returns the expected context, and process state" do
-        manager = subject
-        context = manager.context
-        process = manager.process
+        assert_predicate(subject, :success?)
+        assert_equal(2, subject.total)
+        assert_equal(:stopped, @process.state)
+      end
+    end
 
-        assert_predicate(context, :success?)
-        assert_equal(2, context.total)
-        assert_equal(:stopped, process.state)
+    describe "comprised of nested graphs" do
+      subject { WorkflowCallingWorkflow.call(process: @process, signal: @signal, context: { total: @total }) }
+
+      it "returns the expected context, and process state" do
+        assert_predicate(subject, :success?)
+        assert_equal(6, subject.total)
+        assert_equal(:finished, @process.state)
       end
     end
 
@@ -45,13 +48,9 @@ describe NucleusCore::Workflow do
       end
 
       it "returns the expected failed context, and process state" do
-        manager = subject
-        context = manager.context
-        process = manager.process
-
-        refute_predicate(context, :success?)
-        assert_match(/invalid signal: #{@signal}/, context.message)
-        assert_equal(:initial, process.state)
+        refute_predicate(subject, :success?)
+        assert_match(/invalid signal: #{@signal}/, subject.message)
+        assert_equal(:initial, @process.state)
       end
     end
 
@@ -61,125 +60,109 @@ describe NucleusCore::Workflow do
       end
 
       it "returns the expected context, and process state" do
-        manager = subject
-        context = manager.context
-        process = manager.process
-
-        assert_predicate(context, :success?)
-        assert_equal(14, context.total)
-        assert_equal(:stopped, process.state)
-        assert_equal(%i[started paused stopped], process.visited)
+        assert_predicate(subject, :success?)
+        assert_equal(14, subject.total)
+        assert_equal(:stopped, @process.state)
+        assert_equal(%i[started paused stopped], @process.visited)
       end
     end
 
     describe "when the operation fails" do
-      subject { FailingWorkflow.call(process: @process, signal: @signal, context: { total: @total }) }
+      subject do
+        FailingWorkflow.call(
+          process: @process,
+          signal: @signal,
+          context: { total: @total }
+        )
+      end
 
       it "fails the context" do
-        manager = subject
-        context = manager.context
-        process = manager.process
-
-        refute_predicate(context, :success?)
-        assert_match(/workflow error!/, context.message)
-        assert_equal(:initial, process.state)
+        refute_predicate(subject, :success?)
+        assert_match(/workflow error!/, subject.message)
+        assert_equal(:initial, @process.state)
       end
     end
 
     describe "when persisting the workflow process" do
+      # - Replaces `SimpleWorkflow.handle_execution_step` with a stub that persists the process.
+      # - Calls `SimpleWorkflow.call` with test parameters (`@process`, `@signal`, `@total`).
+      # - Ensures that the stubbed method is only applied within the test execution.
       subject do
-        SimpleWorkflow.call(
-          process: @process,
-          signal: @signal,
-          context: { total: @total }
-        ) do |process, _graph, _context|
-          TestRepository.persist_process(process)
+        stub = ->(process, *_args) { TestRepository.persist_process(process) }
+        SimpleWorkflow.stub(:handle_execution_step, stub) do
+          SimpleWorkflow.call(
+            process: @process,
+            signal: @signal,
+            context: { total: @total }
+          )
         end
       end
 
       describe "and it succeeds" do
         it "returns the expected context" do
-          manager = subject
-          context = manager.context
-          process = manager.process
-
-          assert_predicate(context, :success?)
-          assert_equal(:stopped, process.state)
+          assert_predicate(subject, :success?)
+          assert_equal(:stopped, @process.state)
         end
       end
 
       describe "and it fails" do
+        # - Replaces `SimpleWorkflow.handle_execution_step` with a stub that fails to persist the process.
+        # - Calls `SimpleWorkflow.call` with test parameters (`@process`, `@signal`, `@total`).
+        # - Ensures that the stubbed method is only applied within the test execution.
         subject do
-          FailingWorkflow.call(
-            process: @process,
-            signal: @signal,
-            context: { total: @total }
-          ) do |process, _graph, _context|
-            TestRepository.failing_persist_process(process)
+          stub = ->(process, *_args) { TestRepository.failing_persist_process(process) }
+          FailingWorkflow.stub(:handle_execution_step, stub) do
+            FailingWorkflow.call(
+              process: @process,
+              signal: @signal,
+              context: { total: @total }
+            )
           end
         end
 
         it "returns the expected context" do
-          manager = subject
-          context = manager.context
-          process = manager.process
-
-          refute_predicate(context, :success?)
-          assert_equal(:initial, process.state)
+          refute_predicate(subject, :success?)
+          assert_equal(:initial, @process.state)
         end
       end
     end
 
     describe "unhandled exception" do
-      subject do
-        FailingWorkflow.call(process: nil, signal: :raise_exception)
-      end
+      subject { FailingWorkflow.call(process: @process, signal: :raise_exception) }
 
       it "fails the context" do
-        manager = subject
-        context = manager.context
-        process = manager.process
-
-        refute_predicate(context, :success?)
-        assert_match(/Unhandled exception FailingWorkflow: not found/, context.message)
-        assert(context.exception.is_a?(NucleusCore::NotFound))
-        assert_match(/not found/, context.exception.message)
-        assert_equal(:initial, process.state)
+        refute_predicate(subject, :success?)
+        assert_match(/Unhandled exception FailingWorkflow: not found/, subject.message)
+        assert(subject.exception.is_a?(NucleusCore::NotFound))
+        assert_match(/not found/, subject.exception.message)
+        assert_equal(:initial, @process.state)
       end
     end
 
     describe "chain of command execution" do
-      subject do
-        ChainOfCommandWorkflow.call(context: {})
-      end
+      subject { ChainOfCommandWorkflow.call(context: {}, process: @process) }
 
       it "fails the context" do
-        manager = subject
-        context = manager.context
-        process = manager.process
-
-        refute_predicate(context, :success?)
-        assert_equal(:four, process.state)
+        refute_predicate(subject, :success?)
+        assert_equal(:four, @process.state)
       end
     end
   end
 
   describe "#rollback" do
     before do
-      @args = { process: nil, signal: nil, context: { total: 0 } }
+      @initial_state = SimpleWorkflow::INITIAL_STATE
+      @process = NucleusCore::Workflow::Process.new(@initial_state)
     end
 
     it "reverts specified side effects" do
-      manager = RollbackWorkflow.call(context: @args)
-      context = manager.context
-      process = manager.process
-
+      context = RollbackWorkflow.call(process: @process, signal: nil, context: { total: 0 })
       assert_predicate(context, :success?)
       assert_equal(3, context.total)
-      assert_equal(:stopped, process.state)
-      assert_equal(%i[started running sprinting stopped], process.visited)
+      assert_equal(:stopped, @process.state)
+      assert_equal(%i[started running sprinting stopped], @process.visited)
 
-      RollbackWorkflow.rollback(process: process, context: context)
+      RollbackWorkflow.rollback(process: @process, context: context)
 
       assert_equal(0, context.total)
     end
