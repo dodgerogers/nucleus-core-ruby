@@ -1,44 +1,48 @@
 require "test_helper"
 
-describe NucleusCore::SimpleObject do
+describe NucleusCore::Entity do
   describe "#initialize" do
     before do
       @args = { name: "Bob", "number" => 123 }
     end
 
-    subject { NucleusCore::SimpleObject.new(@args) }
+    subject { NucleusCore::Entity.new(@args) }
 
     it "sets expected methods, and instance variables" do
       obj = subject
 
-      assert_property(obj, "Bob", :name)
-      assert_property(obj, 123, :number)
+      assert_property(obj, :name, "Bob")
+      assert_property(obj, :number, 123)
       assert_equal(@args, obj.to_h)
     end
 
     it "setter methods update __attributes__" do
       obj = subject
 
-      assert_property(obj, @args[:name], :name)
-      assert_property(obj, @args["number"], :number)
+      assert_property(obj, :name, @args[:name])
+      assert_property(obj, :number, @args["number"])
 
-      new_name = "new name"
-      new_number = 456
-      obj.name = new_name
-      obj[:number] = new_number
+      obj.name = "new name"
+      obj[:number] = 456
       obj["new"] = "value"
 
-      assert_property(obj, new_name, :name)
-      assert_property(obj, new_number, :number)
-      assert_property(obj, "value", :new)
+      assert_property(obj, :name, "new name")
+      assert_property(obj, :number, 456)
+      assert_property(obj, :new, "value")
     end
 
     it "implements `to_h`" do
       assert_equal(subject.instance_variable_get(:@__attributes__), subject.to_h)
     end
+
+    it "implements `key?`" do
+      assert(subject.key?(:name))
+      assert(subject.key?("name"))
+      refute(subject.key?(:other_name))
+    end
   end
 
-  def assert_property(obj, expected_value, key)
+  def assert_property(obj, key, expected_value)
     assert_equal(expected_value, obj.send(key.to_sym))
     assert_equal(expected_value, obj[key.to_sym])
     assert_equal(expected_value, obj[key.to_s])
