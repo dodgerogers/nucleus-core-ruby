@@ -133,7 +133,7 @@ describe NucleusCore::Workflow do
       it "fails the context" do
         refute_predicate(subject, :success?)
         assert_match(/Unhandled exception FailingWorkflow: not found/, subject.message)
-        assert(subject.exception.is_a?(NucleusCore::NotFound))
+        assert_kind_of(NucleusCore::NotFound, subject.exception)
         assert_match(/not found/, subject.exception.message)
         assert_equal(:initial, @process.state)
       end

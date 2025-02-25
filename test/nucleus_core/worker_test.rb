@@ -57,7 +57,7 @@ describe NucleusCore::Worker do
       it "executes successfully" do
         res = subject
 
-        assert(res.is_a?(NucleusCore::View))
+        assert_kind_of(NucleusCore::View, res)
         assert_equal(@args[:id], res.id)
       end
 
