@@ -72,7 +72,8 @@ module NucleusCore
       return handle_context(entity) if entity.is_a?(NucleusCore::Operation::Context)
       return render_view(entity) if Utils.subclass_of(entity, NucleusCore::View)
       return render_view_response(entity) if Utils.subclass_of(entity, NucleusCore::View::Response)
-      return render_nothing if entity.nil?
+
+      render_nothing if entity.nil?
     end
 
     def handle_context(context)
@@ -92,7 +93,7 @@ module NucleusCore
 
     def render_view(view)
       view_format = request_context.format.to_sym
-      view_response = view.send(view_format) if view.respond_to?(view_format)
+      view_response = view.send(view_format)
 
       if view_response.nil?
         requested_format = request_context.format
