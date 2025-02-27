@@ -76,7 +76,7 @@ describe NucleusCore::Responder do
           response = subject
 
           assert_equal(:nothing, response.format)
-          assert_equal({ "nothing" => "header" }, response.headers)
+          assert_equal({ nothing: "header" }, response.headers)
         end
       end
     end

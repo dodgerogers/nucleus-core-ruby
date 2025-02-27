@@ -8,6 +8,7 @@ module NucleusCore
   autoload :Operation, "nucleus_core/operation"
   autoload :Responder, "nucleus_core/responder"
   autoload :RequestAdapter, "nucleus_core/request_adapter"
+  autoload :ResponseAdapter, "nucleus_core/response_adapter"
   autoload :Worker, "nucleus_core/worker"
   autoload :Entity, "nucleus_core/entity"
   autoload :Policy, "nucleus_core/policy"
