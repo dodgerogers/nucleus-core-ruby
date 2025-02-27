@@ -12,6 +12,6 @@ class NucleusCore::ErrorView < NucleusCore::View
   end
 
   def json
-    NucleusCore::View::Response.new(:json, content: to_h, status: status)
+    build_response(content: to_h, status: status)
   end
 end
