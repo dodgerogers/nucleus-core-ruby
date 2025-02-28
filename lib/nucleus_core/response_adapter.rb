@@ -1,5 +1,7 @@
 module NucleusCore
   class ResponseAdapter
+    def initialize(*args); end
+
     def call(_entity)
       raise NotImplementedError
     end
