@@ -97,7 +97,7 @@ class Utils
     proxy_object.method(:_proc_to_lambda_).to_proc.call(*args)
   end
 
-  def self.subclass_of(entity, *classes)
+  def self.subclass?(entity, *classes)
     parent_classes = entity.class.ancestors.to_set
     parent_classes = entity.ancestors.to_set if entity.instance_of?(Class)
 

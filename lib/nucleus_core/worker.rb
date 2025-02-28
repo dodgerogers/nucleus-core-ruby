@@ -59,7 +59,7 @@ module NucleusCore
 
       def self.execute(class_name, method_name, args)
         NucleusCore::Connector.execute(class_name, method_name, args) do |klass|
-          return klass.new(args).send(method_name) if Utils.subclass_of(klass, NucleusCore::Worker)
+          return klass.new(args).send(method_name) if Utils.subclass?(klass, NucleusCore::Worker)
         end
       end
     end
@@ -81,7 +81,7 @@ module NucleusCore
     def self.call(args={})
       adapter = args.delete(:adapter) || queue_adapter
 
-      unless Utils.subclass_of(adapter, NucleusCore::Worker::Adapter)
+      unless Utils.subclass?(adapter, NucleusCore::Worker::Adapter)
         raise "`#{adapter}` does not subclass `NucleusCore::Worker::Adapter`"
       end
 
