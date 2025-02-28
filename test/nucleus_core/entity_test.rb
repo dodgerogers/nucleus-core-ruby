@@ -9,36 +9,113 @@ describe NucleusCore::Entity do
     subject { NucleusCore::Entity.new(@args) }
 
     it "sets expected methods, and instance variables" do
-      obj = subject
-
-      assert_property(obj, :name, "Bob")
-      assert_property(obj, :number, 123)
-      assert_equal(@args, obj.to_h)
+      assert_property(subject, :name, "Bob")
+      assert_property(subject, :number, 123)
+      assert_equal({ name: "Bob", number: 123 }, subject.to_h)
     end
 
     it "setter methods update __attributes__" do
-      obj = subject
+      assert_property(subject, :name, @args[:name])
+      assert_property(subject, :number, @args["number"])
 
-      assert_property(obj, :name, @args[:name])
-      assert_property(obj, :number, @args["number"])
+      subject.name = "new name"
+      subject[:number] = 456
+      subject["new"] = "value"
 
-      obj.name = "new name"
-      obj[:number] = 456
-      obj["new"] = "value"
-
-      assert_property(obj, :name, "new name")
-      assert_property(obj, :number, 456)
-      assert_property(obj, :new, "value")
+      assert_property(subject, :name, "new name")
+      assert_property(subject, :number, 456)
+      assert_property(subject, :new, "value")
     end
+  end
 
-    it "implements `to_h`" do
+  describe "hash interface" do
+    subject { NucleusCore::Entity.new(foo: "bar", baz: 42, qux: nil) }
+
+    it "#to_h" do
+      assert_equal({ foo: "bar", baz: 42, qux: nil }, subject.to_h)
       assert_equal(subject.instance_variable_get(:@__attributes__), subject.to_h)
     end
 
-    it "implements `key?`" do
-      assert(subject.key?(:name))
-      assert(subject.key?("name"))
-      refute(subject.key?(:other_name))
+    it "#dup" do
+      duped = subject.dup
+      assert_equal(subject.to_h, duped.to_h)
+      refute_equal(subject, duped)
+      refute_same(
+        subject.instance_variable_get(:@__attributes__),
+        duped.instance_variable_get(:@__attributes__)
+      )
+    end
+
+    it "#clone" do
+      cloned = subject.clone
+      assert_equal(subject.to_h, cloned.to_h)
+      refute_equal(subject, cloned)
+      refute_same(
+        subject.instance_variable_get(:@__attributes__),
+        cloned.instance_variable_get(:@__attributes__)
+      )
+    end
+
+    it "#key?" do
+      assert(subject.key?(:foo))
+      assert(subject.key?("foo"))
+      refute(subject.key?(:foozzz))
+    end
+
+    it "#respond_to?" do
+      assert_respond_to(subject, :foo)
+      assert_respond_to(subject, "foo")
+      refute_respond_to(subject, :bazzz)
+    end
+
+    it "#dig" do
+      nested_entity = NucleusCore::Entity.new(user: { "profile" => { "name" => "Alice" } })
+      assert_equal("Alice", nested_entity.dig(:user, :profile, :name))
+      refute_equal("Alice", nested_entity.dig(:user, "profile", :name))
+      assert_nil(nested_entity.dig(:user, :profile, :unknown))
+    end
+
+    it "#delete" do
+      assert_equal("bar", subject.delete(:foo))
+      assert_equal(42, subject.delete(:baz))
+      refute(subject.key?(:foo))
+      refute(subject.key?(:baz))
+    end
+
+    it "#merge!" do
+      subject.merge!(
+        new_key: "new_value",
+        foo: 123,
+        "string" => "val",
+        [1, 2, 3] => "array",
+        { key: "val" } => "hash"
+      )
+      assert_equal("new_value", subject[:new_key])
+      assert_equal(123, subject[:foo])
+      assert_equal("val", subject[:string])
+      assert_equal("array", subject[[1, 2, 3]])
+      assert_equal("hash", subject[{ key: "val" }])
+      assert(subject.key?(:"[1, 2, 3]"))
+      assert(subject.key?(:"{:key=>\"val\"}"))
+    end
+
+    it "#each" do
+      collected = []
+      subject.each { |k, v| collected << [k, v] }
+      assert_equal([[:foo, "bar"], [:baz, 42], [:qux, nil]], collected)
+    end
+
+    it "#map" do
+      collected = subject.map { |k, v| [k, v] }
+      assert_equal([[:foo, "bar"], [:baz, 42], [:qux, nil]], collected)
+    end
+
+    it "#keys" do
+      assert_equal(%i[foo baz qux], subject.keys)
+    end
+
+    it "#inspect" do
+      assert_equal("#<NucleusCore::Entity:#{subject.object_id} {:foo=>\"bar\", :baz=>42, :qux=>nil}>", subject.inspect)
     end
   end
 

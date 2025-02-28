@@ -48,14 +48,14 @@ describe Utils do
     end
   end
 
-  describe ".subclass_of" do
+  describe ".subclass?" do
     it "returns true if the entity is a subclass of any given class" do
-      assert(Utils.subclass_of(String, Object))
-      assert(Utils.subclass_of(String, Object, BasicObject))
+      assert(Utils.subclass?(String, Object))
+      assert(Utils.subclass?(String, Object, BasicObject))
     end
 
     it "returns false if the entity is not a subclass of any given class" do
-      refute(Utils.subclass_of(String, Array))
+      refute(Utils.subclass?(String, Array))
     end
   end
 

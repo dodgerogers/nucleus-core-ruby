@@ -70,8 +70,8 @@ module NucleusCore
 
     def render_entity(entity)
       return handle_context(entity) if entity.is_a?(NucleusCore::Operation::Context)
-      return render_view(entity) if Utils.subclass_of(entity, NucleusCore::View)
-      return render_view_response(entity) if Utils.subclass_of(entity, NucleusCore::View::Response)
+      return render_view(entity) if Utils.subclass?(entity, NucleusCore::View)
+      return render_view_response(entity) if Utils.subclass?(entity, NucleusCore::View::Response)
 
       render_nothing if entity.nil?
     end
