@@ -37,13 +37,23 @@ describe NucleusCore::Entity do
     end
 
     it "#dup" do
-      assert_equal(subject.to_h, subject.dup.to_h)
-      refute_equal(subject, subject.dup)
+      duped = subject.dup
+      assert_equal(subject.to_h, duped.to_h)
+      refute_equal(subject, duped)
+      refute_same(
+        subject.instance_variable_get(:@__attributes__),
+        duped.instance_variable_get(:@__attributes__)
+      )
     end
 
     it "#clone" do
-      assert_equal(subject.to_h, subject.clone.to_h)
-      refute_equal(subject, subject.clone)
+      cloned = subject.clone
+      assert_equal(subject.to_h, cloned.to_h)
+      refute_equal(subject, cloned)
+      refute_same(
+        subject.instance_variable_get(:@__attributes__),
+        cloned.instance_variable_get(:@__attributes__)
+      )
     end
 
     it "#key?" do
@@ -61,6 +71,7 @@ describe NucleusCore::Entity do
     it "#dig" do
       nested_entity = NucleusCore::Entity.new(user: { "profile" => { "name" => "Alice" } })
       assert_equal("Alice", nested_entity.dig(:user, :profile, :name))
+      refute_equal("Alice", nested_entity.dig(:user, "profile", :name))
       assert_nil(nested_entity.dig(:user, :profile, :unknown))
     end
 
@@ -72,10 +83,20 @@ describe NucleusCore::Entity do
     end
 
     it "#merge!" do
-      subject.merge!(new_key: "new_value", foo: 123)
+      subject.merge!(
+        new_key: "new_value",
+        foo: 123,
+        "string" => "val",
+        [1, 2, 3] => "array",
+        { key: "val" } => "hash"
+      )
       assert_equal("new_value", subject[:new_key])
       assert_equal(123, subject[:foo])
-      assert(subject.key?(:new_key))
+      assert_equal("val", subject[:string])
+      assert_equal("array", subject[[1, 2, 3]])
+      assert_equal("hash", subject[{ key: "val" }])
+      assert(subject.key?(:"[1, 2, 3]"))
+      assert(subject.key?(:"{:key=>\"val\"}"))
     end
 
     it "#each" do
@@ -87,6 +108,10 @@ describe NucleusCore::Entity do
     it "#map" do
       collected = subject.map { |k, v| [k, v] }
       assert_equal([[:foo, "bar"], [:baz, 42], [:qux, nil]], collected)
+    end
+
+    it "#keys" do
+      assert_equal(%i[foo baz qux], subject.keys)
     end
 
     it "#inspect" do

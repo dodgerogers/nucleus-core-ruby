@@ -22,27 +22,15 @@ module NucleusCore
   #   obj['foo'] # => "bar"
   #   obj.dig(:nested, :object) = "value"
   #   obj.foo = "baz"
-  #   obj.to_h  # => { foo: "baz", nexted: { object: "value" } }
+  #   obj.to_h  # => { foo: "baz", nested: { object: "value" } }
   class Entity
     extend Forwardable
 
-    HASH_METHODS = %i[each delete dig map merge!].freeze
+    HASH_METHODS = %i[each delete dig map keys].freeze
     def_delegators :@__attributes__, *HASH_METHODS
 
     def initialize(attrs={})
       @__attributes__ = symbolize_keys(attrs || {})
-    end
-
-    def to_h
-      @__attributes__
-    end
-
-    def to_json(options=nil)
-      to_h.to_json(options)
-    end
-
-    def as_json(options=nil)
-      to_h.as_json(options)
     end
 
     def [](key)
@@ -53,8 +41,12 @@ module NucleusCore
       @__attributes__[format_key(key)] = value
     end
 
-    def key?(key)
-      @__attributes__.key?(format_key(key))
+    def to_json(options=nil)
+      to_h.to_json(options)
+    end
+
+    def as_json(options=nil)
+      to_h.as_json(options)
     end
 
     def initialize_copy(other)
@@ -62,16 +54,16 @@ module NucleusCore
       @__attributes__ = other.to_h.dup
     end
 
-    def respond_to?(name, _include_all=nil)
-      key?(name) || super
-    end
-
-    def respond_to_missing?(name, _include_private=false)
-      key?(name) || super
-    end
-
     def inspect
       "#<#{self.class.name}:#{object_id} #{@__attributes__.inspect}>"
+    end
+
+    def key?(key)
+      @__attributes__.key?(format_key(key))
+    end
+
+    def merge!(attrs={})
+      @__attributes__.merge!(symbolize_keys(attrs))
     end
 
     def method_missing(name, *args)
@@ -83,13 +75,24 @@ module NucleusCore
       end
     end
 
+    def respond_to?(name, _include_all=nil)
+      key?(name) || super
+    end
+
+    def respond_to_missing?(name, _include_private=false)
+      key?(name) || super
+    end
+
+    def to_h
+      @__attributes__
+    end
+
     private
 
     def symbolize_keys(hash)
       hash ||= {}
-      copy = {}
-      hash.each do |k, v|
-        copy[format_key(k)] =
+      hash.each_with_object({}) do |(k, v), acc|
+        acc[format_key(k)] =
           case v
           when Hash
             symbolize_keys(v)
@@ -99,8 +102,6 @@ module NucleusCore
             v
           end
       end
-
-      copy
     end
 
     def format_key(key)
