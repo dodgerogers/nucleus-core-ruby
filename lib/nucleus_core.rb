@@ -3,18 +3,18 @@ require "json"
 require "set"
 
 module NucleusCore
+  # Core Components
   autoload :CLI, "nucleus_core/cli"
-  autoload :VERSION, "nucleus_core/version"
   autoload :Operation, "nucleus_core/operation"
   autoload :Responder, "nucleus_core/responder"
   autoload :RequestAdapter, "nucleus_core/request_adapter"
   autoload :ResponseAdapter, "nucleus_core/response_adapter"
-  autoload :Worker, "nucleus_core/worker"
   autoload :Entity, "nucleus_core/entity"
-  autoload :Policy, "nucleus_core/policy"
-  autoload :Repository, "nucleus_core/repository"
   autoload :View, "nucleus_core/view"
   autoload :Connector, "nucleus_core/connector"
+
+  # Version
+  autoload :VERSION, "nucleus_core/version"
 
   extensions = File.join(__dir__, "nucleus_core", "extensions", "*.rb")
   exceptions = File.join(__dir__, "nucleus_core", "exceptions.rb")
@@ -40,10 +40,8 @@ module NucleusCore
 
     def format_request_exceptions(args={})
       errors = %i[not_found bad_request unauthorized forbidden unprocessable]
-      exceptions = errors
-        .reduce({}) { |acc, name| acc.merge(name => nil) }
-        .merge(args)
-        .transform_values { |values| Utils.wrap(values) }
+      exceptions = errors.to_h { |name| [name, []] }.merge(args)
+      exceptions.transform_values! { |values| Array(values) } # Ensure array
 
       OpenStruct.new(exceptions)
     end

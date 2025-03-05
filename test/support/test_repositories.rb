@@ -1,4 +1,4 @@
-class TestRepository < NucleusCore::Repository
+class TestRepository
   def self.find(id)
     raise NucleusCore::NotFound, "cannot find thing with ID #{id}" if id.odd?
 
@@ -10,6 +10,6 @@ class TestRepository < NucleusCore::Repository
   end
 
   def self.failing_persist_process(_process, _attrs={})
-    false
+    raise NucleusCore::BaseException, "#{__method__} failed"
   end
 end
