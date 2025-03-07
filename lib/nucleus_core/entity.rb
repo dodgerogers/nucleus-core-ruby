@@ -97,7 +97,7 @@ module NucleusCore
           when Hash
             symbolize_keys(v)
           when Array
-            v.map { |val| val.is_a?(Hash) ? symbolize_keys(val) : val }
+            v.map { _1.is_a?(Hash) ? symbolize_keys(_1) : _1 }
           else
             v
           end

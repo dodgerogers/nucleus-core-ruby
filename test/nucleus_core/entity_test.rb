@@ -8,7 +8,7 @@ describe NucleusCore::Entity do
 
     subject { NucleusCore::Entity.new(@args) }
 
-    it "sets expected methods, and instance variables" do
+    it "sets expected methods" do
       assert_property(subject, :name, "Bob")
       assert_property(subject, :number, 123)
       assert_equal({ name: "Bob", number: 123 }, subject.to_h)
@@ -116,6 +116,20 @@ describe NucleusCore::Entity do
 
     it "#inspect" do
       assert_equal("#<NucleusCore::Entity:#{subject.object_id} {:foo=>\"bar\", :baz=>42, :qux=>nil}>", subject.inspect)
+    end
+
+    describe "#symbolize_keys" do
+      before do
+        @original = { "foo" => "bar", "baz" => 42, "qux" => nil }
+      end
+
+      subject { NucleusCore::Entity.new(@original) }
+
+      it "copies hash, whilst converting all keys to symbols" do
+        result = subject.to_h
+        refute_equal(@original, result)
+        assert_equal({ foo: "bar", baz: 42, qux: nil }, result)
+      end
     end
   end
 
