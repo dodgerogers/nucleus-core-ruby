@@ -91,17 +91,21 @@ class Utils
   # from a block method into a lambda to avoid 'return' exiting the method early.
   # https://stackoverflow.com/questions/2946603/ruby-convert-proc-to-lambda
   def self.capture(args=[], &block)
-    proxy_object = Object.new
-    proxy_object.define_singleton_method(:_proc_to_lambda_, &block)
+    Object.new
+      .tap { |obj| obj.define_singleton_method(:_proc_to_lambda_, &block) }
+      .method(:_proc_to_lambda_)
+      .to_proc
+      .call(*args)
+  end
 
-    proxy_object.method(:_proc_to_lambda_).to_proc.call(*args)
+  def self.superclasses(entity)
+    entity = entity.class unless entity.instance_of?(Class)
+
+    entity.ancestors.to_set
   end
 
   def self.subclass?(entity, *classes)
-    parent_classes = entity.class.ancestors.to_set
-    parent_classes = entity.ancestors.to_set if entity.instance_of?(Class)
-
-    parent_classes.intersect?(classes.to_set)
+    superclasses(entity).intersect?(classes.to_set)
   end
 
   def self.to_const(string)

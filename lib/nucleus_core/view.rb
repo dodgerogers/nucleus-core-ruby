@@ -18,9 +18,8 @@ module NucleusCore
       end
     end
 
-    # Equivalent to build_response(request_format: :json, content: {...}, status: :ok)
     def json
-      build_response(content: to_h, status: :ok)
+      build_response(content: to_h)
     end
 
     private
@@ -40,7 +39,7 @@ module NucleusCore
     #   end
     #
     # @example Explicit format
-    #   build_response(request_format: :json, data: { foo: "bar" })
+    #   build_response(request_format: :show, data: { foo: "bar" })
     #
     def build_response(request_format: caller_locations(1, 1).first.label.to_sym, **attrs)
       NucleusCore::View::Response.new(request_format, attrs || {})

@@ -8,13 +8,13 @@ describe NucleusCore::Entity do
 
     subject { NucleusCore::Entity.new(@args) }
 
-    it "sets expected methods, and instance variables" do
+    it "sets expected methods" do
       assert_property(subject, :name, "Bob")
       assert_property(subject, :number, 123)
       assert_equal({ name: "Bob", number: 123 }, subject.to_h)
     end
 
-    it "setter methods update __attributes__" do
+    it "setter methods update __properties__" do
       assert_property(subject, :name, @args[:name])
       assert_property(subject, :number, @args["number"])
 
@@ -33,7 +33,7 @@ describe NucleusCore::Entity do
 
     it "#to_h" do
       assert_equal({ foo: "bar", baz: 42, qux: nil }, subject.to_h)
-      assert_equal(subject.instance_variable_get(:@__attributes__), subject.to_h)
+      assert_equal(subject.instance_variable_get(:@__properties__), subject.to_h)
     end
 
     it "#dup" do
@@ -41,8 +41,8 @@ describe NucleusCore::Entity do
       assert_equal(subject.to_h, duped.to_h)
       refute_equal(subject, duped)
       refute_same(
-        subject.instance_variable_get(:@__attributes__),
-        duped.instance_variable_get(:@__attributes__)
+        subject.instance_variable_get(:@__properties__),
+        duped.instance_variable_get(:@__properties__)
       )
     end
 
@@ -51,8 +51,8 @@ describe NucleusCore::Entity do
       assert_equal(subject.to_h, cloned.to_h)
       refute_equal(subject, cloned)
       refute_same(
-        subject.instance_variable_get(:@__attributes__),
-        cloned.instance_variable_get(:@__attributes__)
+        subject.instance_variable_get(:@__properties__),
+        cloned.instance_variable_get(:@__properties__)
       )
     end
 
@@ -116,6 +116,20 @@ describe NucleusCore::Entity do
 
     it "#inspect" do
       assert_equal("#<NucleusCore::Entity:#{subject.object_id} {:foo=>\"bar\", :baz=>42, :qux=>nil}>", subject.inspect)
+    end
+
+    describe "#symbolize_keys" do
+      before do
+        @original = { "foo" => "bar", "baz" => 42, "qux" => nil }
+      end
+
+      subject { NucleusCore::Entity.new(@original) }
+
+      it "copies hash, whilst converting all keys to symbols" do
+        result = subject.to_h
+        refute_equal(@original, result)
+        assert_equal({ foo: "bar", baz: 42, qux: nil }, result)
+      end
     end
   end
 

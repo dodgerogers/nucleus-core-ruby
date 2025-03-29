@@ -1,122 +1,132 @@
 class SimpleWorkflow < NucleusCore::Workflow::Graph
-  def define
-    start_node(continue: :started)
-    add_node(
-      state: :started,
-      operation: lambda do |context|
+  define_graph do
+    initial do
+      transitions continue: :started
+    end
+
+    node :started do
+      operation lambda { |context|
         context.total ||= 0
         context.total += 1
-      end,
-      determine_signal: ->(context) { context.total > 10 ? :pause : :stop },
-      signals: { pause: :paused, stop: :stopped }
-    )
-    add_node(
-      state: :paused,
-      signals: { continue: :stopped }
-    )
-    add_node(
-      state: :stopped,
-      operation: ->(context) { context.total += 2 },
-      determine_signal: ->(_) { :wait }
-    )
+      }
+      determine_signal ->(context) { context.total > 10 ? :pause : :stop }
+      transitions pause: :paused, stop: :stopped
+    end
+
+    node :paused do
+      transitions continue: :stopped
+    end
+
+    node :stopped do
+      operation ->(context) { context.total += 2 }
+      determine_signal ->(_ctx) { :wait }
+    end
   end
 end
 
 class FailingWorkflow < NucleusCore::Workflow::Graph
-  def define
-    start_node(continue: :failed, raise_exception: :unhandled_exception)
-    add_node(
-      state: :failed,
-      operation: ->(context) { context.fail!("workflow error!") },
-      signals: { continue: :completed }
-    )
-    add_node(
-      state: :unhandled_exception,
-      operation: ->(_context) { raise NucleusCore::NotFound, "not found" },
-      determine_signal: ->(_) { :wait }
-    )
-    add_node(
-      state: :completed,
-      determine_signal: ->(_) { :wait }
-    )
+  define_graph do
+    initial do
+      transitions continue: :failed, raise_exception: :unhandled_exception
+    end
+
+    node :failed do
+      operation ->(context) { context.fail!("workflow error!") }
+      transitions continue: :completed
+    end
+
+    node :unhandled_exception do
+      operation ->(_context) { raise NucleusCore::NotFound, "not found" }
+      determine_signal ->(_ctx) { :wait }
+    end
+
+    node :completed do
+      determine_signal ->(_ctx) { :wait }
+    end
   end
 end
 
 class RollbackWorkflow < NucleusCore::Workflow::Graph
-  def define
-    start_node(continue: :started, raise_exception: :unhandled_exception)
-    add_node(
-      state: :started,
-      operation: lambda do |context|
+  define_graph do
+    initial do
+      transitions continue: :started
+    end
+
+    node :started do
+      operation lambda { |context|
         context.total ||= 0
         context.total += 1
-      end,
-      rollback: ->(context) { context.total -= 1 },
-      signals: { continue: :running }
-    )
-    add_node(
-      state: :running,
-      operation: ->(context) { context.total += 1 },
-      rollback: ->(context) { context.total -= 1 },
-      signals: { continue: :sprinting }
-    )
-    add_node(
-      state: :sprinting,
-      operation: ->(context) { context.total += 1 },
-      rollback: ->(context) { context.total -= 1 },
-      signals: { continue: :stopped }
-    )
-    add_node(
-      state: :stopped,
-      determine_signal: ->(_) { :wait }
-    )
+      }
+      rollback ->(context) { context.total -= 1 }
+      transitions continue: :running
+    end
+
+    node :running do
+      operation ->(context) { context.total += 1 }
+      rollback ->(context) { context.total -= 1 }
+      transitions continue: :sprinting
+    end
+
+    node :sprinting do
+      operation ->(context) { context.total += 1 }
+      rollback ->(context) { context.total -= 1 }
+      transitions continue: :stopped
+    end
+
+    node :stopped do
+      determine_signal ->(_ctx) { :wait }
+    end
   end
 end
 
 class ChainOfCommandWorkflow < NucleusCore::Workflow::Graph
-  def define
-    @execution = :chain_of_command
+  define_graph do
+    failure_handling :continue
 
-    start_node(continue: :one)
-    add_node(
-      state: :one,
-      operation: ->(context) { context.fail!(message: "one_failed") },
-      signals: { continue: :two }
-    )
-    add_node(
-      state: :two,
-      operation: ->(context) { context.fail!(message: "two_failed") },
-      signals: { continue: :three }
-    )
-    add_node(
-      state: :three,
-      operation: ->(context) { context.fail!(message: "three_failed") },
-      signals: { continue: :four }
-    )
-    add_node(
-      state: :four,
-      operation: ->(context) { context.fail!(message: "four_failed") },
-      determine_signal: ->(_) { :wait }
-    )
+    initial do
+      transitions continue: :one
+    end
+
+    node :one do
+      operation ->(context) { context.fail!(message: "one_failed") }
+      transitions continue: :two
+    end
+
+    node :two do
+      operation ->(context) { context.fail!(message: "two_failed") }
+      transitions continue: :three
+    end
+
+    node :three do
+      operation ->(context) { context.fail!(message: "three_failed") }
+      transitions continue: :four
+    end
+
+    node :four do
+      operation ->(context) { context.fail!(message: "four_failed") }
+      determine_signal ->(_ctx) { :wait }
+    end
   end
 end
 
 class WorkflowCallingWorkflow < NucleusCore::Workflow::Graph
-  def define
-    start_node(continue: :first_graph)
-    add_node(
-      state: :first_graph,
-      operation: ->(context) { SimpleWorkflow.call(context: context) },
-      signals: { continue: :second_graph }
-    )
-    add_node(
-      state: :second_graph,
-      operation: ->(context) { SimpleWorkflow.call(context: context) },
-      signals: { continue: :finished }
-    )
-    add_node(
-      state: :finished,
-      determine_signal: ->(_) { :wait }
-    )
+  define_graph do
+    initial do
+      transitions continue: :first_graph
+    end
+
+    node :first_graph do
+      operation ->(context) { SimpleWorkflow.call(context: context) }
+      transitions continue: :second_graph
+    end
+
+    node :second_graph do
+      operation ->(context) { SimpleWorkflow.call(context: context) }
+      transitions continue: :finished
+    end
+
+    node :finished do
+      determine_signal ->(_ctx) { :wait }
+    end
   end
 end

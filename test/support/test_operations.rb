@@ -27,6 +27,7 @@ class DummyOperation < NucleusCore::Operation
 
   def call
     validate_required_args!
+
     context.entity = OpenStruct.new(name: "Dummy")
   end
 
