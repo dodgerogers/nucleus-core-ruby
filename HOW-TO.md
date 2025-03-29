@@ -45,28 +45,30 @@ end
 
 ```ruby
 class FulfillOrder < NucleusCore::Workflow
-  def define
-    start_node(continue: :apply_discount?)
-    add_node(
-      state: :apply_discount?,
-      operation: FetchOrder,
-      determine_signal: ->(context) { context.order.total > 10 ? :discount : :pay },
-      signals: { discount: :discount_order, pay: :take_payment }
-    )
-    add_node(
-      state: :discount_order,
-      operation: ->(context) { context.discounted = context.order.discount! },
-      signals: { continue: :take_payment }
-    )
-    add_node(
-      state: :take_payment,
-      operation: ProcessOrderPayment,
-      signals: { continue: :completed }
-    )
-    add_node(
-      state: :completed,
-      determine_signal: ->(_) { :wait }
-    )
+  define_graph do
+    initial do
+      transitions continue: :apply_discount?
+    end
+
+    node :apply_discount? do
+      operation FetchOrder
+      determine_signal ->(context) { context.order.total > 10 ? :discount : :pay },
+      transitions discount: :discount_order, pay: :take_payment
+    end
+
+    node :discount_order do
+      operation ->(context) { context.discounted = context.order.discount! },
+      transitions continue: :take_payment
+    end
+
+    node :take_payment do
+      operation ProcessOrderPayment
+      transitions continue: :completed
+    end
+
+    node :completed do
+      determine_signal ->(_) { :wait }
+    end
   end
 end
 ```

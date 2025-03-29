@@ -140,7 +140,7 @@ describe NucleusCore::Workflow do
       end
     end
 
-    describe "chain of command execution" do
+    describe "continue failure handling" do
       subject { ChainOfCommandWorkflow.call(context: {}, process: @process) }
 
       it "fails the context" do
