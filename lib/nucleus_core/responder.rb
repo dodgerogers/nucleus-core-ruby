@@ -46,6 +46,21 @@ module NucleusCore
   #   NucleusCore framework to function correctly.
   #
   class Responder
+    EXCEPTION_STATUS_MAP = {
+      NucleusCore::NotFound => :not_found,
+      NucleusCore::BadRequest => :bad_request,
+      NucleusCore::Unauthorized => :forbidden,
+      NucleusCore::NotAuthenticated => :unauthorized,
+      NucleusCore::Unprocessable => :unprocessable_entity
+    }.tap do |map|
+      NucleusCore
+        .configuration
+        .request_exceptions
+        .each_pair do |status_name, exceptions|
+          exceptions.each { map[_1] = status_name }
+        end
+    end.freeze
+
     attr_accessor :response_adapter, :request_adapter, :request_context
 
     def initialize(request_adapter: nil, response_adapter: nil)
@@ -55,11 +70,10 @@ module NucleusCore
     end
 
     # rubocop:disable Lint/RescueException:
-    def execute(raw_request_context=nil, &block)
+    def execute(raw_req_context=nil, &block)
       return if block.nil?
 
-      request_context_attrs = request_adapter&.call(raw_request_context) || {}
-      @request_context = NucleusCore::RequestAdapter.new(request_context_attrs)
+      @request_context = NucleusCore::RequestAdapter.new(request_adapter&.call(raw_req_context) || {})
       entity = Utils.capture(@request_context, &block)
 
       render_entity(entity)
@@ -69,20 +83,21 @@ module NucleusCore
     # rubocop:enable Lint/RescueException:
 
     def render_entity(entity)
-      return handle_context(entity) if entity.is_a?(NucleusCore::Operation::Context)
-      return render_view(entity) if Utils.subclass?(entity, NucleusCore::View)
-      return render_view_response(entity) if Utils.subclass?(entity, NucleusCore::View::Response)
+      superclasses = Utils.superclasses(entity)
 
-      render_nothing if entity.nil?
+      case entity
+      when NucleusCore::Operation::Context then handle_context(entity)
+      when ->(_e) { superclasses.member?(NucleusCore::View) } then render_view(entity)
+      when ->(_e) { superclasses.member?(NucleusCore::View::Response) } then render_view_response(entity)
+      else render_nothing
+      end
     end
 
     def handle_context(context)
       return render_nothing if context.success?
       return handle_exception(context.exception) if context.exception
 
-      view = NucleusCore::ErrorView.new(message: context.message, status: :internal_server_error)
-
-      render_view(view)
+      render_view(init_error_view(context.message))
     end
 
     def render_nothing
@@ -95,16 +110,12 @@ module NucleusCore
       view_format = request_context.format.to_sym
       view_response = view.send(view_format)
 
-      if view_response.nil?
-        requested_format = request_context.format
-        default_response_format = NucleusCore.configuration.default_response_format || :json
+      return render_view_response(view_response) if view_response
 
-        request_context.to_h[:format] = default_response_format
+      requested_format = request_context.format
+      request_context.format = NucleusCore.configuration.default_response_format || :json
 
-        raise NucleusCore::BadRequest, "`#{requested_format}` is not supported"
-      end
-
-      render_view_response(view_response)
+      raise NucleusCore::BadRequest, "`#{requested_format}` is not supported"
     end
 
     def render_view_response(view_response)
@@ -114,33 +125,23 @@ module NucleusCore
     def handle_exception(exception)
       logger(exception, :error)
 
-      status = infer_status(exception)
-      view = NucleusCore::ErrorView.new(message: exception.message, status: status)
-
-      render_view(view)
+      render_view(
+        init_error_view(
+          exception.message, infer_status(exception)
+        )
+      )
     end
 
     def infer_status(exception)
-      exceptions = NucleusCore.configuration.request_exceptions
-
-      case exception
-      when NucleusCore::NotFound, *exceptions.not_found
-        :not_found
-      when NucleusCore::BadRequest, *exceptions.bad_request
-        :bad_request
-      when NucleusCore::Unauthorized, *exceptions.forbidden
-        :forbidden
-      when NucleusCore::NotAuthenticated, *exceptions.unauthorized
-        :unauthorized
-      when NucleusCore::Unprocessable, *exceptions.unprocessable
-        :unprocessable_entity
-      else
-        :internal_server_error
-      end
+      EXCEPTION_STATUS_MAP[exception.class] || :internal_server_error
     end
 
     def logger(object, log_level=:info)
       NucleusCore.configuration.logger&.send(log_level, object)
+    end
+
+    def init_error_view(message, status=:internal_server_error)
+      NucleusCore::ErrorView.new(message: message, status: status)
     end
   end
 end

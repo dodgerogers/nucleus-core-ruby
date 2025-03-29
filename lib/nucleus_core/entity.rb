@@ -27,18 +27,22 @@ module NucleusCore
     extend Forwardable
 
     HASH_METHODS = %i[each delete dig map keys].freeze
-    def_delegators :@__attributes__, *HASH_METHODS
+    def_delegators :@__properties__, *HASH_METHODS
 
-    def initialize(attrs={})
-      @__attributes__ = symbolize_keys(attrs || {})
+    def initialize(props={})
+      @__properties__ = symbolize_keys(props || {})
     end
 
     def [](key)
-      @__attributes__[format_key(key)]
+      @__properties__[format_key(key)]
     end
 
     def []=(key, value)
-      @__attributes__[format_key(key)] = value
+      @__properties__[format_key(key)] = value
+    end
+
+    def to_h
+      @__properties__
     end
 
     def to_json(options=nil)
@@ -51,19 +55,19 @@ module NucleusCore
 
     def initialize_copy(other)
       super
-      @__attributes__ = other.to_h.dup
+      @__properties__ = Marshal.load(Marshal.dump(other.to_h))
     end
 
     def inspect
-      "#<#{self.class.name}:#{object_id} #{@__attributes__.inspect}>"
+      "#<#{self.class.name}:#{object_id} #{@__properties__.inspect}>"
     end
 
     def key?(key)
-      @__attributes__.key?(format_key(key))
+      @__properties__.key?(format_key(key))
     end
 
-    def merge!(attrs={})
-      @__attributes__.merge!(symbolize_keys(attrs))
+    def merge!(props={})
+      @__properties__.merge!(symbolize_keys(props))
     end
 
     def method_missing(name, *args)
@@ -83,10 +87,6 @@ module NucleusCore
       key?(name) || super
     end
 
-    def to_h
-      @__attributes__
-    end
-
     private
 
     def symbolize_keys(hash)
@@ -97,7 +97,7 @@ module NucleusCore
           when Hash
             symbolize_keys(v)
           when Array
-            v.map { |val| val.is_a?(Hash) ? symbolize_keys(val) : val }
+            v.map { _1.is_a?(Hash) ? symbolize_keys(_1) : _1 }
           else
             v
           end
@@ -105,7 +105,7 @@ module NucleusCore
     end
 
     def format_key(key)
-      key.to_s.to_sym
+      (key.is_a?(Symbol) && key) || key.to_s.to_sym
     end
   end
 end

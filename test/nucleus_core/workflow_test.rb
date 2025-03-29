@@ -111,8 +111,8 @@ describe NucleusCore::Workflow do
         # - Ensures that the stubbed method is only applied within the test execution.
         subject do
           stub = ->(process, *_args) { TestRepository.failing_persist_process(process) }
-          FailingWorkflow.stub(:handle_execution_step, stub) do
-            FailingWorkflow.call(
+          SimpleWorkflow.stub(:handle_execution_step, stub) do
+            SimpleWorkflow.call(
               process: @process,
               signal: @signal,
               context: { total: @total }
@@ -122,7 +122,8 @@ describe NucleusCore::Workflow do
 
         it "returns the expected context" do
           refute_predicate(subject, :success?)
-          assert_equal(:initial, @process.state)
+          assert_match(/unhandled exception SimpleWorkflow: failing_persist_process failed/i, subject.message)
+          assert_equal(:started, @process.state)
         end
       end
     end
@@ -139,7 +140,7 @@ describe NucleusCore::Workflow do
       end
     end
 
-    describe "chain of command execution" do
+    describe "continue failure handling" do
       subject { ChainOfCommandWorkflow.call(context: {}, process: @process) }
 
       it "fails the context" do

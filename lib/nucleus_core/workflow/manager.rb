@@ -3,11 +3,11 @@ module NucleusCore
   module Workflow
     # The Manager class orchestrates the execution and management of workflow processes
     # within the NucleusCore framework. It leverages a graph of nodes to determine the
-    # sequence of operations based on signals and the current state of the process.
+    # sequence of operations based on transitions and the current state of the process.
     #
     # Key Features:
     # - Workflow Execution: Manages the progression through the workflow nodes based on
-    #   signals, executing node operations, and updating the process state.
+    #   transitions, executing node operations, and updating the process state.
     # - Context Management: Utilizes a context object to maintain and manipulate the state
     #   and data throughout the workflow execution.
     # - Error Handling: Handles and logs errors encountered during the workflow execution,
@@ -24,15 +24,15 @@ module NucleusCore
     #
     # Attributes:
     # - process: The workflow process, representing the current state and history of the execution.
-    # - graph: The workflow graph, defining the nodes and transitions based on signals.
+    # - graph: The workflow graph, defining the nodes and transitions based on transitions.
     # - context: The context object, maintaining the state and data throughout the workflow.
     #
     # Methods:
-    # - call: Executes the workflow, progressing through nodes based on signals and updating the process state.
+    # - call: Executes the workflow, progressing through nodes based on transitions and updating the process state.
     # - rollback: Reverts the operations performed during the workflow execution, providing a mechanism for recovery.
     #
     class Manager
-      # Signals
+      # transitions
       #########################################################################
       CONTINUE = :continue
       WAIT = :wait
@@ -53,7 +53,7 @@ module NucleusCore
       def call(signal=nil)
         signal ||= CONTINUE
         current_state = process.state
-        next_signal = (graph.fetch_node(current_state)&.signals || {})[signal]
+        next_signal = (graph.fetch_node(current_state)&.transitions || {})[signal]
         current_node = graph.fetch_node(next_signal)
 
         context.fail!("invalid signal: #{signal}") if current_node.nil?
@@ -61,7 +61,7 @@ module NucleusCore
         while next_signal
           status, next_signal, @context = execute_node(current_node, context)
 
-          break if status == FAILED && !graph.chain_of_command?
+          break if status == FAILED && !graph.continue_on_failure?
 
           process.state = current_node.state
 
@@ -113,7 +113,7 @@ module NucleusCore
 
         [status, next_signal, context]
       rescue NucleusCore::Operation::Context::Error => e
-        if graph.chain_of_command?
+        if graph.continue_on_failure?
           next_signal = determine_signal(node, context)
 
           return [OK, next_signal, context]
@@ -140,7 +140,7 @@ module NucleusCore
           signal = send(node.determine_signal, context)
         end
 
-        node.signals&.dig(signal)
+        node.transitions&.dig(signal)
       end
 
       def fail_context(context, exception)

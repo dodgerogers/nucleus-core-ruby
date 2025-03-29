@@ -24,12 +24,15 @@ module NucleusCore
     #   end
     #
     #   def call
-    #     validate_required_args!
-    #     # Perform operation logic here
+    #     validate_required_args! do |missing|
+    #       missing.push('id or order') if context.id.nil? && context.order.nil?
+    #     end
+    #
+    #     # Perform operation logic
     #   end
     #
     #   def rollback
-    #     # Define rollback logic here
+    #     # Define rollback logic
     #   end
     # end
     #
@@ -68,35 +71,33 @@ module NucleusCore
 
     def self.call(args={})
       operation = new(args)
-      operation.call
-      operation.context
+      operation.tap(&:call).context
     rescue Context::Error
-      operation.context
+      operation&.context
     end
 
     def self.rollback(context)
       operation = new(context)
-      operation.rollback
-      operation.context
+      operation.tap(&:rollback).context
     end
 
     def validate_required_args!
-      missing_args = (required_args || []).reject { |arg| context.key?(arg) }
-      yield missing_args if block_given?
-      return if missing_args.empty?
-
-      context.fail!("Missing required arguments: #{missing_args.join(', ')}")
+      missing = (required_args || []).reject { context.key?(_1) }
+      yield missing if block_given?
+      context.fail!("Missing required arguments: #{missing.join(', ')}") if missing.any?
     end
 
-    # Override these methods
-    def required_args
-      nil
-    end
-
+    # Public interface
+    ##################
     def call
     end
 
     def rollback
     end
+
+    def required_args
+      []
+    end
+    ##################
   end
 end
